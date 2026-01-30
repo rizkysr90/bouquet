@@ -1,0 +1,204 @@
+{{ define "product-detail-content" }}
+<div class="max-w-6xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <ol class="flex items-center space-x-2 text-gray-600">
+            <li><a href="/" class="hover:text-pink-600 transition">Beranda</a></li>
+            <li>/</li>
+            {{ if .Product.Category }}
+            <li><a href="/?category={{ .Product.Category.ID }}" class="hover:text-pink-600 transition">{{
+                    .Product.Category.Name }}</a></li>
+            <li>/</li>
+            {{ end }}
+            <li class="text-gray-900 font-medium">{{ .Product.Title }}</li>
+        </ol>
+    </nav>
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+            <!-- Product Image -->
+            <div>
+                <div id="main-image-container" class="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
+                    <img id="main-image"
+                        src="{{ if .Product.MainPhotoURL }}{{ .Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Crect fill='%23e5e7eb' width='600' height='600'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='20' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
+                        alt="{{ .Product.Title }}" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Variant Images (if multiple) -->
+                {{ if and .Product.Variants (gt (len .Product.Variants) 1) }}
+                <div class="grid grid-cols-4 gap-2">
+                    <button data-variant-color=""
+                        data-variant-image="{{ if .Product.MainPhotoURL }}{{ .Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23e5e7eb' width='150' height='150'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='14' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
+                        data-variant-price="{{ .Product.BasePrice }}"
+                        class="variant-thumb variant-thumb-active aspect-square border-2 border-pink-600 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        <img src="{{ if .Product.MainPhotoURL }}{{ .Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23e5e7eb' width='150' height='150'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='14' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
+                            alt="Default" class="w-full h-full object-cover">
+                    </button>
+                    {{ range .Product.Variants }}
+                    <button data-variant-color="{{ .Color }}"
+                        data-variant-image="{{ if .PhotoURL }}{{ .PhotoURL }}{{ else }}{{ $.Product.MainPhotoURL }}{{ end }}"
+                        data-variant-price="{{ .FinalPrice $.Product.BasePrice }}"
+                        class="variant-thumb aspect-square border-2 border-gray-300 rounded-lg overflow-hidden hover:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500 transition">
+                        <img src="{{ if .PhotoURL }}{{ .PhotoURL }}{{ else }}{{ $.Product.MainPhotoURL }}{{ end }}"
+                            alt="{{ .Color }}" class="w-full h-full object-cover">
+                    </button>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+
+            <!-- Product Info -->
+            <div>
+                <div class="mb-4">
+                    {{ if .Product.Category }}
+                    <span
+                        class="inline-block px-3 py-1 text-xs font-medium bg-pink-100 text-pink-800 rounded-full mb-2">
+                        {{ .Product.Category.Name }}
+                    </span>
+                    {{ end }}
+                </div>
+
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ .Product.Title }}</h1>
+                <p class="text-sm text-gray-500 mb-4">Kode: {{ .Product.Code }}</p>
+
+                <!-- Price -->
+                <div class="mb-6">
+                    <p id="product-price" class="text-3xl font-bold text-pink-600">
+                        Rp {{ printf "%.0f" .Product.BasePrice }}
+                    </p>
+                </div>
+
+                <!-- Description -->
+                {{ if .Product.Description }}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-2">Deskripsi</h3>
+                    <p class="text-gray-700 whitespace-pre-line">{{ .Product.Description }}</p>
+                </div>
+                {{ end }}
+
+                <!-- Variant Selector -->
+                {{ if and .Product.Variants (gt (len .Product.Variants) 0) }}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-3">Pilih Varian</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button data-variant-color=""
+                            data-variant-image="{{ if .Product.MainPhotoURL }}{{ .Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Crect fill='%23e5e7eb' width='600' height='600'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='20' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
+                            data-variant-price="{{ .Product.BasePrice }}" id="variant-default"
+                            class="variant-btn variant-btn-active px-4 py-2 border-2 border-pink-600 bg-pink-50 text-pink-700 rounded-lg font-medium transition">
+                            Default
+                        </button>
+                        {{ range .Product.Variants }}
+                        <button data-variant-color="{{ .Color }}"
+                            data-variant-image="{{ if .PhotoURL }}{{ .PhotoURL }}{{ else if $.Product.MainPhotoURL }}{{ $.Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Crect fill='%23e5e7eb' width='600' height='600'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='20' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
+                            data-variant-price="{{ .FinalPrice $.Product.BasePrice }}" id="variant-{{ .Color }}"
+                            class="variant-btn px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-pink-500 hover:text-pink-600 transition relative">
+                            {{ .Color }}
+                            {{ if .IsSale }}
+                            <span class="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-semibold bg-red-500 text-white rounded">
+                                SALE
+                            </span>
+                            {{ else }}
+                            <span class="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-semibold bg-gray-800 text-white rounded">
+                                SOLD
+                            </span>
+                            {{ end }}
+                        </button>
+                        {{ end }}
+                    </div>
+                </div>
+                {{ end }}
+
+                <!-- WhatsApp CTA -->
+                <div class="mt-8">
+                    <a id="whatsapp-link"
+                        href="https://wa.me/{{ .WhatsAppNumber }}?text=Halo%2C%20saya%20tertarik%20dengan%20{{ .Product.Title }}.%20Apakah%20masih%20tersedia%3F"
+                        target="_blank" rel="noopener noreferrer"
+                        class="block w-full bg-green-500 hover:bg-green-600 text-white text-center font-semibold py-4 px-6 rounded-lg transition shadow-lg">
+                        💬 Chat via WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="product-data">
+{{ printf "{\"title\":%q,\"whatsAppNumber\":%q,\"basePrice\":%.2f}" .Product.Title .WhatsAppNumber .Product.BasePrice }}
+</script>
+<script>
+    (function () {
+        const productData = JSON.parse(document.getElementById('product-data').textContent);
+        const productTitle = productData.title;
+        const whatsAppNumber = productData.whatsAppNumber;
+        const basePrice = productData.basePrice;
+        let selectedVariant = null;
+        let selectedPrice = basePrice;
+
+        function selectVariant(color, imageUrl, price) {
+            selectedVariant = color;
+            selectedPrice = price;
+
+        // Update main image
+        const mainImage = document.getElementById('main-image');
+        if (mainImage) {
+            const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Crect fill='%23e5e7eb' width='600' height='600'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='20' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+            mainImage.src = imageUrl || placeholderSvg;
+        }
+
+            // Update price
+            const priceElement = document.getElementById('product-price');
+            if (priceElement) {
+                priceElement.textContent = 'Rp ' + Math.round(price).toLocaleString('id-ID');
+            }
+
+            // Update variant button styles
+            document.querySelectorAll('.variant-btn').forEach(btn => {
+                btn.classList.remove('border-pink-600', 'bg-pink-50', 'text-pink-700', 'variant-btn-active');
+                btn.classList.add('border-gray-300', 'text-gray-700');
+            });
+
+            // Update variant thumb styles
+            document.querySelectorAll('.variant-thumb').forEach(btn => {
+                btn.classList.remove('border-pink-600', 'variant-thumb-active');
+                btn.classList.add('border-gray-300');
+            });
+
+            // Activate selected variant button
+            const activeBtn = color ? document.getElementById('variant-' + color) : document.getElementById('variant-default');
+            if (activeBtn) {
+                activeBtn.classList.remove('border-gray-300', 'text-gray-700');
+                activeBtn.classList.add('border-pink-600', 'bg-pink-50', 'text-pink-700', 'variant-btn-active');
+            }
+
+            // Activate selected variant thumb
+            const activeThumb = document.querySelector('[data-variant-color="' + (color || '') + '"].variant-thumb');
+            if (activeThumb) {
+                activeThumb.classList.remove('border-gray-300');
+                activeThumb.classList.add('border-pink-600', 'variant-thumb-active');
+            }
+
+            // Update WhatsApp link
+            const variantText = color ? ' - ' + color : '';
+            const message = encodeURIComponent('Halo, saya tertarik dengan ' + productTitle + variantText + '. Apakah masih tersedia?');
+            const whatsappLink = document.getElementById('whatsapp-link');
+            if (whatsappLink) {
+                whatsappLink.href = 'https://wa.me/' + whatsAppNumber + '?text=' + message;
+            }
+        }
+
+        // Attach event listeners to variant buttons
+        document.querySelectorAll('.variant-btn, .variant-thumb').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const color = this.getAttribute('data-variant-color') || null;
+                const imageUrl = this.getAttribute('data-variant-image') || '';
+                const price = parseFloat(this.getAttribute('data-variant-price')) || basePrice;
+                selectVariant(color, imageUrl, price);
+            });
+        });
+    })();
+</script>
+{{ end }}
+
+{{ define "pages/product-detail" }}
+{{/* Empty template - content is rendered by layout based on ContentBlock */}}
+{{ end }}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ if .Title }}{{ .Title }} - {{ end }}Admin Panel</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- htmx -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Custom styles -->
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="bg-gray-800 text-white w-64 fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50">
+            <div class="flex flex-col h-full">
+                <!-- Logo -->
+                <div class="p-4 border-b border-gray-700">
+                    <h1 class="text-xl font-bold text-pink-400">Admin Panel</h1>
+                    <p class="text-sm text-gray-400 mt-1">Bahan Baku Buket</p>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 p-4 space-y-2">
+                    {{$currentPage := .CurrentPage}}
+                    <a href="/admin/dashboard" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition{{if eq $currentPage "dashboard"}} bg-gray-700{{end}}">
+                        <span>📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/admin/products" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition{{if eq $currentPage "products"}} bg-gray-700{{end}}">
+                        <span>📦</span>
+                        <span>Produk</span>
+                    </a>
+                    <a href="/admin/categories" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition{{if eq $currentPage "categories"}} bg-gray-700{{end}}">
+                        <span>📁</span>
+                        <span>Kategori</span>
+                    </a>
+                </nav>
+
+                <!-- Logout -->
+                <div class="p-4 border-t border-gray-700">
+                    <form method="POST" action="/admin/logout" class="w-full">
+                        <button type="submit"
+                            class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition text-red-400">
+                            <span>🚪</span>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden hidden"
+            onclick="toggleSidebar()"></div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden md:ml-64">
+            <!-- Top Bar -->
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="flex items-center justify-between px-4 py-4">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-gray-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Page Title -->
+                    <h2 class="text-xl font-semibold text-gray-800">{{ .Title }}</h2>
+
+                    <!-- User Info -->
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-gray-600">{{ if .Username }}{{ .Username }}{{ end }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                {{ if eq .ContentBlock "admin-content-dashboard" }}
+                    {{ template "admin-content-dashboard" . }}
+                {{ else if eq .ContentBlock "admin-content-products" }}
+                    {{ template "admin-content-products" . }}
+                {{ else if eq .ContentBlock "admin-content-categories" }}
+                    {{ template "admin-content-categories" . }}
+                {{ else if eq .ContentBlock "admin-content-category-form" }}
+                    {{ template "admin-content-category-form" . }}
+                {{ else if eq .ContentBlock "admin-content-form" }}
+                    {{ template "admin-content-form" . }}
+                {{ else }}
+                    {{ template "admin-content-dashboard" . }}
+                {{ end }}
+            </main>
+        </div>
+    </div>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Close sidebar when clicking outside (mobile)
+        document.getElementById('sidebar-overlay').addEventListener('click', toggleSidebar);
+    </script>
+</body>
+
+</html>

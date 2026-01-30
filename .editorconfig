@@ -1,0 +1,29 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.go]
+indent_style = tab
+indent_size = 4
+
+[*.{html,htm}]
+indent_style = space
+indent_size = 4
+# Don't format HTML template files to preserve Go template syntax
+# This prevents formatters from breaking template strings across lines
+
+[*.{yaml,yml}]
+indent_style = space
+indent_size = 2
+
+[*.{json,jsonc}]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+

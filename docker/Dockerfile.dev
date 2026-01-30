@@ -1,0 +1,25 @@
+FROM golang:1.24.3-alpine
+
+# Install air for hot reload (v1.62.0 compatible with Go 1.24.3)
+# Using air-verse/air (newer repo) - v1.62.0 works with Go 1.24.3
+RUN go install github.com/air-verse/air@v1.62.0
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files and vendor directory
+COPY go.mod go.sum ./
+COPY vendor/ ./vendor/
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Run air for hot reload
+CMD ["air", "-c", ".air.toml"]
+

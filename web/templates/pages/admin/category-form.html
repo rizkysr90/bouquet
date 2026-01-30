@@ -1,0 +1,81 @@
+{{ define "admin-content-category-form" }}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">{{ if .IsEdit }}Edit Category{{ else }}Add Category{{ end }}</h1>
+        <p class="text-sm text-gray-600 mt-1">Fill in the category information below</p>
+    </div>
+
+    <!-- Error Message -->
+    {{ if .Error }}
+    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+        {{ .Error }}
+    </div>
+    {{ end }}
+
+    <form method="POST" 
+          action="{{ if and .IsEdit .Category }}/admin/categories/{{ .Category.ID }}{{ else }}/admin/categories{{ end }}" 
+          class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
+        
+        <!-- CSRF Token -->
+        <input type="hidden" name="_csrf" value="{{ .CSRFToken }}">
+
+        <!-- Category Name -->
+        <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Category Name *</label>
+            <input type="text" 
+                   id="name" 
+                   name="name" 
+                   value="{{ if .Category }}{{ .Category.Name }}{{ end }}"
+                   required
+                   minlength="3"
+                   maxlength="100"
+                   placeholder="Pita & Ribbon"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+            <p class="mt-1 text-xs text-gray-500">Category name must be between 3 and 100 characters</p>
+        </div>
+
+        <!-- Slug Preview (read-only) -->
+        <div>
+            <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">Slug (Auto-generated)</label>
+            <input type="text" 
+                   id="slug" 
+                   name="slug" 
+                   value="{{ if .Category }}{{ .Category.Slug }}{{ end }}"
+                   readonly
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed">
+            <p class="mt-1 text-xs text-gray-500">Slug is automatically generated from the category name</p>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-200">
+            <a href="/admin/categories" 
+               class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="px-6 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium rounded-lg transition">
+                {{ if .IsEdit }}Update Category{{ else }}Save Category{{ end }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Auto-generate slug preview as user types
+    const nameInput = document.getElementById('name');
+    const slugInput = document.getElementById('slug');
+    
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function() {
+            const name = this.value;
+            // Simple slug generation (matches server-side logic)
+            let slug = name.toLowerCase()
+                .replace(/[^a-z0-9-]+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+            slugInput.value = slug;
+        });
+    }
+</script>
+{{ end }}
+

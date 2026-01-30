@@ -1,0 +1,70 @@
+{{ if and .Products (gt (len .Products) 0) }}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {{ range .Products }}
+    <a href="/products/{{ .ID }}"
+        class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition group">
+        <!-- Product Image -->
+        <div class="aspect-square bg-gray-100 relative overflow-hidden">
+            <img src="{{ if .MainPhotoURL }}{{ .MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23e5e7eb' width='400' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='18' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
+                alt="{{ .Title }}"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+
+            <!-- Badges -->
+            <div class="absolute top-2 left-2 flex flex-col gap-2">
+                {{ if and .Variants (gt (len .Variants) 0) }}
+                    {{ $hasSaleVariant := false }}
+                    {{ range .Variants }}
+                        {{ if .IsSale }}
+                            {{ $hasSaleVariant = true }}
+                        {{ end }}
+                    {{ end }}
+                    {{ if $hasSaleVariant }}
+                    <span class="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded">
+                        SALE
+                    </span>
+                    {{ else }}
+                    <span class="px-2 py-1 text-xs font-semibold bg-gray-800 text-white rounded">
+                        SOLD
+                    </span>
+                    {{ end }}
+                {{ end }}
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="p-4">
+            {{ if .Category }}
+            <span class="text-xs text-pink-600 font-medium">{{ .Category.Name }}</span>
+            {{ end }}
+            <h3 class="font-semibold text-gray-900 mt-1 mb-2 line-clamp-2 group-hover:text-pink-600 transition">
+                {{ .Title }}
+            </h3>
+            <p class="text-sm text-gray-500 mb-2">Kode: {{ .Code }}</p>
+            <p class="text-lg font-bold text-pink-600">
+                Rp {{ printf "%.0f" .BasePrice }}
+            </p>
+        </div>
+    </a>
+    {{ end }}
+</div>
+{{ else }}
+<!-- Empty State -->
+<div class="text-center py-16 px-4">
+    <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M6 6h.008v.008H6V6z"></path>
+    </svg>
+    <h3 class="mt-4 text-lg font-semibold text-gray-900">Tidak ada produk ditemukan</h3>
+    <p class="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+        Coba ubah filter atau kata kunci pencarian Anda untuk menemukan produk yang Anda cari.
+    </p>
+    <a href="/" class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-pink-600 bg-pink-50 rounded-lg hover:bg-pink-100 transition">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Lihat Semua Produk
+    </a>
+</div>
+{{ end }}

@@ -1,0 +1,105 @@
+# github.com/andybalholm/brotli v1.1.0
+## explicit; go 1.13
+github.com/andybalholm/brotli
+github.com/andybalholm/brotli/matchfinder
+# github.com/cloudinary/cloudinary-go/v2 v2.14.0
+## explicit; go 1.20
+github.com/cloudinary/cloudinary-go/v2
+github.com/cloudinary/cloudinary-go/v2/api
+github.com/cloudinary/cloudinary-go/v2/api/admin
+github.com/cloudinary/cloudinary-go/v2/api/admin/metadata
+github.com/cloudinary/cloudinary-go/v2/api/admin/search
+github.com/cloudinary/cloudinary-go/v2/api/uploader
+github.com/cloudinary/cloudinary-go/v2/asset
+github.com/cloudinary/cloudinary-go/v2/config
+github.com/cloudinary/cloudinary-go/v2/internal/signature
+github.com/cloudinary/cloudinary-go/v2/logger
+github.com/cloudinary/cloudinary-go/v2/transformation
+# github.com/creasty/defaults v1.7.0
+## explicit; go 1.14
+github.com/creasty/defaults
+# github.com/gofiber/fiber/v2 v2.52.10
+## explicit; go 1.20
+github.com/gofiber/fiber/v2
+github.com/gofiber/fiber/v2/internal/memory
+github.com/gofiber/fiber/v2/internal/schema
+github.com/gofiber/fiber/v2/internal/storage/memory
+github.com/gofiber/fiber/v2/log
+github.com/gofiber/fiber/v2/middleware/cors
+github.com/gofiber/fiber/v2/middleware/csrf
+github.com/gofiber/fiber/v2/middleware/recover
+github.com/gofiber/fiber/v2/middleware/session
+github.com/gofiber/fiber/v2/utils
+# github.com/gofiber/template v1.8.3
+## explicit; go 1.20
+github.com/gofiber/template
+# github.com/gofiber/template/html/v2 v2.1.3
+## explicit; go 1.20
+github.com/gofiber/template/html/v2
+# github.com/gofiber/utils v1.1.0
+## explicit; go 1.17
+github.com/gofiber/utils
+# github.com/golang-jwt/jwt/v5 v5.3.0
+## explicit; go 1.21
+github.com/golang-jwt/jwt/v5
+# github.com/google/uuid v1.6.0
+## explicit
+github.com/google/uuid
+# github.com/gorilla/schema v1.4.1
+## explicit; go 1.20
+github.com/gorilla/schema
+# github.com/jmoiron/sqlx v1.4.0
+## explicit; go 1.10
+github.com/jmoiron/sqlx
+github.com/jmoiron/sqlx/reflectx
+# github.com/joho/godotenv v1.5.1
+## explicit; go 1.12
+github.com/joho/godotenv
+# github.com/klauspost/compress v1.17.9
+## explicit; go 1.20
+github.com/klauspost/compress/flate
+github.com/klauspost/compress/gzip
+github.com/klauspost/compress/zlib
+# github.com/lib/pq v1.10.9
+## explicit; go 1.13
+github.com/lib/pq
+github.com/lib/pq/oid
+github.com/lib/pq/scram
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.20
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/mattn/go-runewidth v0.0.16
+## explicit; go 1.9
+github.com/mattn/go-runewidth
+# github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c
+## explicit; go 1.20
+github.com/philhofer/fwd
+# github.com/rivo/uniseg v0.2.0
+## explicit; go 1.12
+github.com/rivo/uniseg
+# github.com/tinylib/msgp v1.2.5
+## explicit; go 1.20
+github.com/tinylib/msgp/msgp
+# github.com/valyala/bytebufferpool v1.0.0
+## explicit
+github.com/valyala/bytebufferpool
+# github.com/valyala/fasthttp v1.51.0
+## explicit; go 1.20
+github.com/valyala/fasthttp
+github.com/valyala/fasthttp/fasthttputil
+github.com/valyala/fasthttp/reuseport
+github.com/valyala/fasthttp/stackless
+# github.com/valyala/tcplisten v1.0.0
+## explicit; go 1.12
+github.com/valyala/tcplisten
+# golang.org/x/crypto v0.47.0
+## explicit; go 1.24.0
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
+# golang.org/x/sys v0.40.0
+## explicit; go 1.24.0
+golang.org/x/sys/unix
+golang.org/x/sys/windows

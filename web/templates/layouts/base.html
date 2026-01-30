@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ if .Title }}{{ .Title }} - {{ end }}Katalog Bahan Baku Buket Bunga</title>
+    <meta name="description" content="Katalog lengkap bahan baku buket bunga - kertas, pita, aksesoris dekorasi">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- htmx -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Custom styles if needed -->
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="text-2xl font-bold text-pink-600">
+                    🌸 Katalog Bahan Baku
+                </a>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-pink-600 transition">Beranda</a>
+                    <a href="/#products" class="text-gray-700 hover:text-pink-600 transition">Produk</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8">
+        {{ if eq .ContentBlock "landing-content" }}
+            {{ template "landing-content" . }}
+        {{ else if eq .ContentBlock "product-detail-content" }}
+            {{ template "product-detail-content" . }}
+        {{ else }}
+            {{ template "landing-content" . }}
+        {{ end }}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-auto">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Tentang Kami</h3>
+                    <p class="text-gray-300 text-sm">
+                        Menyediakan bahan baku lengkap untuk buket bunga dan dekorasi.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Kontak</h3>
+                    <p class="text-gray-300 text-sm">
+                        Hubungi kami via WhatsApp untuk pemesanan dan informasi lebih lanjut.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Jam Operasional</h3>
+                    <p class="text-gray-300 text-sm">
+                        Senin - Sabtu: 08:00 - 17:00 WIB
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>&copy; 2026 Katalog Bahan Baku Buket Bunga. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

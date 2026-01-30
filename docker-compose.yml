@@ -1,0 +1,56 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: flower_catalog_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flower_catalog
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: flower_catalog_app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/flower_catalog?sslmode=disable
+      PORT: ${PORT:-3000}
+      ENV: ${ENV:-development}
+    volumes:
+      - .:/app
+      - go_modules:/go/pkg/mod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: air -c .air.toml
+
+  adminer:
+    container_name: adminer-assistant
+    image: adminer:4-standalone
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_started
+    ports:
+      - "8888:8080/tcp"
+
+volumes:
+  postgres_data:
+  go_modules:
+
