@@ -39,6 +39,7 @@ A fullstack Go web application for managing and displaying a flower supply produ
 ### Prerequisites
 
 - Go 1.22 or higher
+- Node.js 18+ and npm (for building Tailwind CSS)
 - Docker and Docker Compose
 - Cloudinary account (for image storage)
 
@@ -50,18 +51,24 @@ A fullstack Go web application for managing and displaying a flower supply produ
    cd aslam-flower/app
    ```
 
-2. **Copy environment variables**
+2. **Install Go dependencies** (vendor is gitignored; build uses `-mod=vendor`)
+   ```bash
+   go mod tidy && go mod vendor
+   ```
+   Or: `make deps`
+
+3. **Copy environment variables**
    ```bash
    cp .env.example .env
    ```
 
-3. **Edit `.env` file** with your configuration:
+4. **Edit `.env` file** with your configuration:
    - Cloudinary credentials
    - Database URL (for local development)
    - JWT secret (generate a random 32-character string)
    - WhatsApp number
 
-4. **Start development environment**
+5. **Start development environment**
    ```bash
    make docker-up
    ```
@@ -71,12 +78,18 @@ A fullstack Go web application for managing and displaying a flower supply produ
    docker-compose up -d
    ```
 
-5. **Run database migrations**
+6. **Build static assets** (Tailwind CSS + htmx; no CDNs in production)
+   ```bash
+   npm install
+   make assets
+   ```
+
+7. **Run database migrations**
    ```bash
    make migrate-up
    ```
 
-6. **Access the application**
+8. **Access the application**
    - Public catalog: http://localhost:3000
    - Admin panel: http://localhost:3000/admin
 
@@ -104,15 +117,24 @@ make docker-logs
 
 ### Building for Production
 
-**Build Docker image:**
-```bash
-make docker-build
-```
+Tailwind CSS and htmx are built/copied locally (no CDNs). Before building or deploying:
 
-**Build Go binary:**
-```bash
-make build
-```
+1. **Build static assets**
+   ```bash
+   npm install
+   make assets
+   ```
+   This generates `web/static/css/styles.css` and copies `web/static/js/htmx.min.js`. For live CSS updates during development, run `make css-watch` in a separate terminal.
+
+2. **Build Go binary**
+   ```bash
+   make build
+   ```
+
+3. **Build Docker image** (ensure `make assets` has been run so CSS and JS are included)
+   ```bash
+   make docker-build
+   ```
 
 ## Available Commands
 
@@ -123,6 +145,9 @@ make help
 
 Common commands:
 - `make build` - Build the application
+- `make assets` - Build all static assets (Tailwind CSS + htmx) for production
+- `make css` - Build only Tailwind CSS
+- `make css-watch` - Watch and rebuild Tailwind CSS during development
 - `make run` - Run the application
 - `make dev` - Run with hot reload
 - `make test` - Run tests

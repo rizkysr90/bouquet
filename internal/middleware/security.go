@@ -22,13 +22,13 @@ func SecurityHeaders() fiber.Handler {
 		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 
 		// Content Security Policy
-		// Allow self, unpkg for htmx, Tailwind CDN, Cloudinary for images
+		// Tailwind and htmx are built/copied and served from 'self'. Cloudinary for images.
 		// Note: 'unsafe-inline' is required for inline scripts in templates (e.g., product-detail.html)
 		// Note: data: is allowed for inline SVG placeholders
 		csp := "default-src 'self'; " +
-			"script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.tailwindcss.com; " +
+			"script-src 'self' 'unsafe-inline'; " +
 			"img-src 'self' https://res.cloudinary.com data:; " +
-			"style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; " +
+			"style-src 'self' 'unsafe-inline'; " +
 			"font-src 'self' data:; " +
 			"connect-src 'self';"
 		c.Set("Content-Security-Policy", csp)

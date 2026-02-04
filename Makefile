@@ -1,4 +1,4 @@
-.PHONY: help build run dev test clean docker-build docker-up docker-down migrate-up migrate-down
+.PHONY: help build run dev test clean docker-build docker-up docker-down migrate-up migrate-down css css-watch assets
 
 # Variables
 APP_NAME=aslam-flower
@@ -11,8 +11,20 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-build: ## Build the application (using vendor)
+build: ## Build the application (using vendor). Run 'make css' first for production styles.
 	$(GO) build -mod=vendor -o bin/$(APP_NAME) ./cmd/server
+
+css: ## Build Tailwind CSS for production (run before deploy)
+	@mkdir -p web/static/css
+	npm run build:css
+
+css-watch: ## Watch and rebuild Tailwind CSS during development
+	@mkdir -p web/static/css
+	npm run watch:css
+
+assets: ## Build all static assets (Tailwind CSS + copy htmx). Run before deploy.
+	@mkdir -p web/static/css web/static/js
+	npm run build:assets
 
 run: ## Run the application (using vendor)
 	$(GO) run -mod=vendor ./cmd/server

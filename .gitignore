@@ -15,7 +15,8 @@ server
 coverage.html
 
 # Dependency directories
-# vendor/ - Keep vendor directory in git for reproducible builds
+node_modules/
+vendor/
 
 # Go workspace file
 go.work

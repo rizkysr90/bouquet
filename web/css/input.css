@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* htmx: hide elements until they are loaded */
+[x-cloak] {
+  display: none !important;
+}

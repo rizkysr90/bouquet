@@ -7,18 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{{ if .Title }}{{ .Title }} - {{ end }}Admin Panel</title>
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (built for production) -->
+    <link href="/static/css/styles.css" rel="stylesheet">
 
-    <!-- htmx -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-
-    <!-- Custom styles -->
-    <style>
-        [x-cloak] {
-            display: none !important;
-        }
-    </style>
+    <!-- htmx (served locally for production) -->
+    <script src="/static/js/htmx.min.js"></script>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
