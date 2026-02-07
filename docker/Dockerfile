@@ -7,12 +7,15 @@ RUN apk add --no-cache git nodejs npm
 # Set working directory
 WORKDIR /build
 
-# Copy go mod files and vendor directory
+# Copy go mod files and source (vendor/ excluded via .dockerignore; root .env included when present)
 COPY go.mod go.sum ./
-COPY vendor/ ./vendor/
-
-# Copy source code
 COPY . .
+
+# Ensure .env exists so final stage copy never fails (empty file if not in context, e.g. CI)
+RUN [ -f .env ] || touch .env
+
+# Populate vendor inside the image (no host vendor needed)
+RUN go mod tidy && go mod vendor
 
 # Build static assets for production (Tailwind CSS + htmx, no CDNs)
 RUN npm install && \
@@ -26,14 +29,21 @@ RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -a -installsuffix cgo -o serve
 # Final stage
 FROM alpine:latest
 
-# Install ca-certificates for HTTPS
-RUN apk --no-cache add ca-certificates
+# Install ca-certificates for HTTPS and wget (healthcheck + dbmate download)
+RUN apk --no-cache add ca-certificates wget
+
+# Install dbmate for running migrations on startup
+ENV DBMATE_VERSION=2.28.0
+RUN wget -q -O /usr/local/bin/dbmate "https://github.com/amacneil/dbmate/releases/download/v${DBMATE_VERSION}/dbmate-linux-amd64" && \
+    chmod +x /usr/local/bin/dbmate
 
 WORKDIR /app
 
-# Copy binary and web assets (templates + static including built CSS)
+# Copy binary, web assets, db migrations, and root .env (override via Railway dashboard in production)
 COPY --from=builder /build/server .
 COPY --from=builder /build/web ./web
+COPY --from=builder /build/db ./db
+COPY --from=builder /build/.env .
 
 # Create non-root user
 RUN addgroup -g 1000 appuser && \
@@ -42,6 +52,12 @@ RUN addgroup -g 1000 appuser && \
 
 USER appuser
 
+# dbmate config (DATABASE_URL set at runtime, e.g. Railway)
+ENV DBMATE_MIGRATIONS_DIR=/app/db/migrations
+ENV DBMATE_NO_DUMP_SCHEMA=true
+ENV DBMATE_WAIT=true
+ENV DBMATE_WAIT_TIMEOUT=60s
+
 # Expose port
 EXPOSE 3000
 
@@ -49,6 +65,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Run the application
-CMD ["./server"]
+# Run migrations then start the server (DATABASE_URL must be set at runtime)
+CMD ["sh", "-c", "dbmate up && exec ./server"]
 

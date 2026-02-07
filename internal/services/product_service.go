@@ -367,18 +367,8 @@ func (s *ProductService) Search(ctx context.Context, query string) ([]models.Pro
 	return products, nil
 }
 
-// validateProduct validates product data
+// validateProduct validates product data (no validation on code — freetext)
 func (s *ProductService) validateProduct(product *models.Product) error {
-	// Validate code
-	if product.Code == "" {
-		return errors.New("product code is required")
-	}
-	// Code pattern: ^[A-Z]{2,4}-[0-9]{3,5}$
-	// This is a simplified check - full regex validation can be added
-	if len(product.Code) < 5 || len(product.Code) > 10 {
-		return errors.New("product code must be between 5 and 10 characters")
-	}
-
 	// Validate title
 	if product.Title == "" {
 		return errors.New("product title is required")

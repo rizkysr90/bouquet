@@ -1,4 +1,4 @@
-.PHONY: help build run dev test clean docker-build docker-up docker-down migrate-up migrate-down css css-watch assets
+.PHONY: help build run dev test clean docker-build docker-up docker-down docker-up-build css css-watch assets server/start server/restart server/stop migrate-up migrate-status migrate-rollback migrate-new migrate-up-docker
 
 # Variables
 APP_NAME=aslam-flower
@@ -46,32 +46,45 @@ clean: ## Clean build artifacts
 docker-build: ## Build Docker image
 	docker build -f docker/Dockerfile -t $(APP_NAME):latest .
 
-docker-up: ## Start Docker Compose services
+docker-up: ## Start Docker Compose services (uses existing image; no rebuild)
 	$(DOCKER_COMPOSE) up -d
+
+docker-up-build: ## Rebuild app image and start Docker Compose services
+	$(DOCKER_COMPOSE) up -d --build
 
 docker-down: ## Stop Docker Compose services
 	$(DOCKER_COMPOSE) down
 
-docker-logs: ## View Docker Compose logs
-	$(DOCKER_COMPOSE) logs -f app
+docker-logs: ## View Docker Compose logs (api service)
+	$(DOCKER_COMPOSE) logs -f api
 
 docker-ps: ## Show running Docker containers
 	$(DOCKER_COMPOSE) ps
 
-migrate-up: ## Run database migration 004_move_flags_to_variants.sql
-	@echo "Running migration: 004_move_flags_to_variants.sql"
-	@$(DOCKER_COMPOSE) exec -T postgres psql -U postgres -d flower_catalog < migrations/004_move_flags_to_variants.sql
+server/start: ## Start Docker Compose (api, postgres, adminer)
+	$(DOCKER_COMPOSE) up -d
 
-migrate-up-all: ## Run all migrations in order (for fresh database)
-	@echo "Running all database migrations..."
-	@$(DOCKER_COMPOSE) exec -T postgres psql -U postgres -d flower_catalog < migrations/001_init.sql
-	@$(DOCKER_COMPOSE) exec -T postgres psql -U postgres -d flower_catalog < migrations/002_seed_categories.sql
-	@$(DOCKER_COMPOSE) exec -T postgres psql -U postgres -d flower_catalog < migrations/003_create_admin.sql
-	@$(DOCKER_COMPOSE) exec -T postgres psql -U postgres -d flower_catalog < migrations/004_move_flags_to_variants.sql
-	@echo "All migrations completed!"
+server/restart: ## Restart api service
+	$(DOCKER_COMPOSE) restart api
 
-migrate-down: ## Rollback last migration (manual - edit as needed)
-	@echo "Warning: Manual rollback required. Edit this target for specific rollback SQL."
+server/stop: ## Stop Docker Compose
+	$(DOCKER_COMPOSE) down
+
+# Dbmate migrations (db/migrations/*.sql). With Docker: db-migration runs on server/start.
+migrate-up: ## Run pending dbmate migrations (requires dbmate: brew install dbmate, or use Docker)
+	dbmate up
+
+migrate-status: ## Show dbmate migration status
+	dbmate status
+
+migrate-rollback: ## Roll back the most recent dbmate migration
+	dbmate rollback
+
+migrate-new: ## Create a new dbmate migration (usage: make migrate-new name=add_foo)
+	dbmate new $(name)
+
+migrate-up-docker: ## Run dbmate up inside Docker (no local dbmate needed)
+	$(DOCKER_COMPOSE) run --rm db-migration up
 
 db-shell: ## Open PostgreSQL shell
 	$(DOCKER_COMPOSE) exec postgres psql -U postgres -d flower_catalog

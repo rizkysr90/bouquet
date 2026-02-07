@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -10,6 +12,12 @@ import (
 type Config struct {
 	// Database
 	DatabaseURL string
+
+	// Database connection pool (optional; defaults used if not set)
+	DBMaxOpenConns    int           // Max open connections (default 25)
+	DBMaxIdleConns    int           // Max idle connections (default 5)
+	DBConnMaxLifetime time.Duration // Max lifetime of a connection (default 5m)
+	DBConnMaxIdleTime time.Duration // Max time a connection can be idle (default 5m)
 
 	// Cloudinary
 	CloudName string
@@ -36,8 +44,12 @@ func Load() *Config {
 	_ = godotenv.Load()
 
 	return &Config{
-		DatabaseURL:    getEnv("DATABASE_URL", ""),
-		CloudName:      getEnv("CLOUDINARY_CLOUD_NAME", ""),
+		DatabaseURL:       getEnv("DATABASE_URL", ""),
+		DBMaxOpenConns:    getEnvInt("DB_MAX_OPEN_CONNS", 25),
+		DBMaxIdleConns:    getEnvInt("DB_MAX_IDLE_CONNS", 5),
+		DBConnMaxLifetime: getEnvDuration("DB_CONN_MAX_LIFETIME", 5*time.Minute),
+		DBConnMaxIdleTime: getEnvDuration("DB_CONN_MAX_IDLE_TIME", 5*time.Minute),
+		CloudName:         getEnv("CLOUDINARY_CLOUD_NAME", ""),
 		APIKey:         getEnv("CLOUDINARY_API_KEY", ""),
 		APISecret:      getEnv("CLOUDINARY_API_SECRET", ""),
 		Port:           getEnv("PORT", "3000"),
@@ -53,6 +65,24 @@ func Load() *Config {
 func getEnv(key, fallback string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return fallback
+}
+
+func getEnvInt(key string, fallback int) int {
+	if value := os.Getenv(key); value != "" {
+		if n, err := strconv.Atoi(value); err == nil && n > 0 {
+			return n
+		}
+	}
+	return fallback
+}
+
+func getEnvDuration(key string, fallback time.Duration) time.Duration {
+	if value := os.Getenv(key); value != "" {
+		if d, err := time.ParseDuration(value); err == nil && d > 0 {
+			return d
+		}
 	}
 	return fallback
 }

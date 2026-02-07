@@ -46,6 +46,7 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+db/schema.sql
 
 # Sensitive files
 *.pem

@@ -34,6 +34,10 @@ A fullstack Go web application for managing and displaying a flower supply produ
 └── .env.example         # Environment variables template
 ```
 
+## Documentation
+
+- **[Docker: Local & Production](docs/DOCKER.md)** — Build CSS and htmx, store in static assets, and run the Go app with Docker Compose (local) or Dockerfile (production).
+
 ## Getting Started
 
 ### Prerequisites
@@ -68,28 +72,21 @@ A fullstack Go web application for managing and displaying a flower supply produ
    - JWT secret (generate a random 32-character string)
    - WhatsApp number
 
-5. **Start development environment**
-   ```bash
-   make docker-up
-   ```
-
-   Or manually:
-   ```bash
-   docker-compose up -d
-   ```
-
-6. **Build static assets** (Tailwind CSS + htmx; no CDNs in production)
+5. **Build static assets** (Tailwind CSS → `web/static/css/styles.css`, htmx → `web/static/js/htmx.min.js`)
    ```bash
    npm install
    make assets
    ```
+   For live CSS updates during dev, run `make css-watch` in another terminal.
 
-7. **Run database migrations**
+6. **Start development environment**
    ```bash
-   make migrate-up
+   make docker-up
    ```
+   Or: `make server/start` or `docker-compose up -d`
+   Database migrations run via the db-migration service (dbmate) before the api starts.
 
-8. **Access the application**
+7. **Access the application**
    - Public catalog: http://localhost:3000
    - Admin panel: http://localhost:3000/admin
 

@@ -1,47 +1,53 @@
-version: '3.9'
+# For local development (migrations run via dbmate before api starts)
+version: "3.9"
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: flower_catalog_postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: flower_catalog
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.dev
-    container_name: flower_catalog_app
+  api:
+    image: golang:1.24.3-bookworm
+    container_name: flower_catalog_api
+    restart: on-failure
     ports:
       - "3000:3000"
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/flower_catalog?sslmode=disable
-      PORT: ${PORT:-3000}
-      ENV: ${ENV:-development}
     volumes:
       - .:/app
-      - go_modules:/go/pkg/mod
+    working_dir: /app
     depends_on:
       postgres:
-        condition: service_healthy
-    command: air -c .air.toml
+        condition: service_started
+      db-migration:
+        condition: service_completed_successfully
+    environment:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+      - GOFLAGS=-mod=vendor
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/flower_catalog?sslmode=disable
+      - PORT=3000
+      - ENV=development
+    env_file:
+      - .env
+    command: /bin/bash -c "git config --global --add safe.directory /app 2>/dev/null; make build && ./bin/aslam-flower"
+
+  db-migration:
+    image: amacneil/dbmate:2.28.0
+    restart: "on-failure"
+    volumes:
+      - ./:/app
+    working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/flower_catalog?sslmode=disable
+      - DBMATE_MIGRATIONS_DIR=/app/db/migrations
+      - DBMATE_NO_DUMP_SCHEMA=true
+      - DBMATE_VERBOSE=true
+      - DBMATE_STRICT=true
+      - DBMATE_WAIT=true
+      - DBMATE_WAIT_TIMEOUT=60s
+    command: up
 
   adminer:
-    container_name: adminer-assistant
+    container_name: adminer
     image: adminer:4-standalone
     restart: on-failure
     depends_on:
@@ -50,7 +56,25 @@ services:
     ports:
       - "8888:8080/tcp"
 
+  postgres:
+    container_name: flower_catalog_postgres
+    image: postgres:15-alpine
+    restart: on-failure
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=flower_catalog
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
-  go_modules:
-
