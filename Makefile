@@ -44,7 +44,7 @@ clean: ## Clean build artifacts
 	rm -f coverage.out coverage.html
 
 docker-build: ## Build Docker image
-	docker build -f docker/Dockerfile -t $(APP_NAME):latest .
+	docker build -t $(APP_NAME):latest .
 
 docker-up: ## Start Docker Compose services (uses existing image; no rebuild)
 	$(DOCKER_COMPOSE) up -d

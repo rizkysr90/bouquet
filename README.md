@@ -27,7 +27,7 @@ A fullstack Go web application for managing and displaying a flower supply produ
 │   ├── templates/       # HTML templates
 │   └── static/          # Static assets (CSS, JS, images)
 ├── migrations/          # Database migrations
-├── docker/              # Dockerfiles
+├── Dockerfile           # Production image (dbmate + server)
 ├── docker-compose.yml   # Development environment
 ├── go.mod               # Go dependencies
 ├── Makefile             # Common commands

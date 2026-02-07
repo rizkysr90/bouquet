@@ -118,7 +118,7 @@ Migrations use [dbmate](https://github.com/amacneil/dbmate). SQL files live in *
 
 ## 2. Production (Dockerfile)
 
-Uses `docker/Dockerfile`: multi-stage build. **CSS and htmx are built inside the image**; you do not need to run `make assets` on the host before building the image.
+Uses root `Dockerfile`: multi-stage build. **CSS and htmx are built inside the image**; you do not need to run `make assets` on the host before building the image.
 
 ### Build stage (inside Docker)
 
@@ -142,7 +142,7 @@ Uses `docker/Dockerfile`: multi-stage build. **CSS and htmx are built inside the
 ### Step 1: Build the image
 
 ```bash
-docker build -f docker/Dockerfile -t aslam-flower:latest .
+docker build -t aslam-flower:latest .
 # or
 make docker-build
 ```
@@ -171,7 +171,7 @@ Or use Docker Compose / your orchestrator with the same image and env.
 ### Summary: production flow
 
 ```text
-Host: docker build -f docker/Dockerfile -t aslam-flower:latest .
+Host: docker build -t aslam-flower:latest .
   → Inside image: go mod tidy && go mod vendor → npm install → build CSS → copy htmx → go build
   → Image contains binary + web/ (templates + web/static with CSS & JS)
 Run: docker run ... aslam-flower:latest
@@ -197,4 +197,4 @@ Run: docker run ... aslam-flower:latest
 | `make css-watch` | Watch and rebuild Tailwind (dev) |
 | `make docker-up` | Start Docker Compose (local dev) |
 | `make docker-down` | Stop Docker Compose |
-| `make docker-build` | Build production image (`docker/Dockerfile`) |
+| `make docker-build` | Build production image (root `Dockerfile`) |

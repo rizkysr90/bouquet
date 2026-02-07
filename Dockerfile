@@ -7,8 +7,7 @@ RUN apk add --no-cache git nodejs npm
 # Set working directory
 WORKDIR /build
 
-# Copy go mod files and source (vendor/ excluded via .dockerignore; root .env included when present)
-COPY go.mod go.sum ./
+# Copy full app (build context = app root: directory with go.mod, cmd/, internal/, web/)
 COPY . .
 
 # Ensure .env exists so final stage copy never fails (empty file if not in context, e.g. CI)
@@ -67,4 +66,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Run migrations then start the server (DATABASE_URL must be set at runtime)
 CMD ["sh", "-c", "dbmate up && exec ./server"]
-
