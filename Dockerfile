@@ -64,5 +64,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Run migrations then start the server (DATABASE_URL must be set at runtime)
-CMD ["sh", "-c", "dbmate up && exec ./server"]
+# Run migrations then start the server (DATABASE_URL must be set at runtime).
+# Support Railway: if only DATABASE_PRIVATE_URL is set, use it as DATABASE_URL for dbmate.
+CMD ["sh", "-c", "[ -z \"$DATABASE_URL\" ] && [ -n \"$DATABASE_PRIVATE_URL\" ] && export DATABASE_URL=\"$DATABASE_PRIVATE_URL\"; dbmate up && exec ./server"]

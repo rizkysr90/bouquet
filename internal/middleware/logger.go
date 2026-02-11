@@ -3,7 +3,6 @@ package middleware
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"os"
 	"time"
 
@@ -11,20 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var loggerWriter io.Writer
-
-func init() {
-	// Initialize logger writer (file + console)
-	logFile, err := os.OpenFile("logs/requests.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		// If file can't be opened, use stdout
-		loggerWriter = os.Stdout
-		log.Printf("Warning: Failed to open request log file: %v. Logging to console only.", err)
-	} else {
-		// Write to both file and console
-		loggerWriter = io.MultiWriter(os.Stdout, logFile)
-	}
-}
+var loggerWriter io.Writer = os.Stdout
 
 // Logger middleware logs request details in JSON format
 func Logger() fiber.Handler {
@@ -70,12 +56,8 @@ func Logger() fiber.Handler {
 		logJSON, _ := json.Marshal(logEntry)
 		logJSON = append(logJSON, '\n')
 
-		// Write to log file and console
-		if loggerWriter != nil {
-			loggerWriter.Write(logJSON)
-		} else {
-			println(string(logJSON))
-		}
+		// Write to stdout
+		loggerWriter.Write(logJSON)
 
 		return err
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -27,13 +26,9 @@ import (
 	"github.com/rizkysr90/aslam-flower/internal/services"
 )
 
-var logFile *os.File
-var logWriter io.Writer
-
 func main() {
-	// Initialize logging to file
+	// Initialize logging to stdout only
 	initLogging()
-	defer closeLogging()
 
 	// Load configuration
 	cfg := config.Load()
@@ -329,36 +324,11 @@ func startServer(app *fiber.App, port string) {
 	log.Println("Server exited gracefully")
 }
 
-// initLogging initializes file logging
+// initLogging configures logging to stdout only
 func initLogging() {
-	// Create logs directory if it doesn't exist
-	if err := os.MkdirAll("logs", 0755); err != nil {
-		log.Printf("Warning: Failed to create logs directory: %v", err)
-	}
-
-	// Open log file (append mode)
-	var err error
-	logFile, err = os.OpenFile("logs/app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Printf("Warning: Failed to open log file: %v. Logging to console only.", err)
-		return
-	}
-
-	// Create multi-writer to write to both file and console
-	logWriter = io.MultiWriter(os.Stdout, logFile)
-
-	// Set log output to multi-writer
-	log.SetOutput(logWriter)
+	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
-	log.Println("Logging initialized - writing to logs/app.log")
-}
-
-// closeLogging closes the log file
-func closeLogging() {
-	if logFile != nil {
-		logFile.Close()
-	}
+	log.Println("Logging initialized - stdout only")
 }
 
 // formatNumber formats a number with thousand separators
