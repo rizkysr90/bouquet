@@ -33,9 +33,11 @@ type Config struct {
 	WhatsAppNumber string
 
 	// Store Information
-	StoreName    string
-	StoreAddress string
-	ShopeeLink   string
+	StoreName     string
+	StoreAddress  string
+	ShopeeLink    string
+	TiktokLink    string
+	InstagramLink string
 }
 
 // Load reads environment variables and returns a Config struct
@@ -56,9 +58,11 @@ func Load() *Config {
 		Env:            getEnv("ENV", "development"),
 		JWTSecret:      getEnv("JWT_SECRET", "dev-secret"),
 		WhatsAppNumber: getEnv("WHATSAPP_NUMBER", ""),
-		StoreName:      getEnv("STORE_NAME", "Aslam Flower Supply"),
+		StoreName:      getEnv("STORE_NAME", "Ancaka Florist Supplier"),
 		StoreAddress:   getEnv("STORE_ADDRESS", ""),
 		ShopeeLink:     getEnv("SHOPEE_LINK", ""),
+		TiktokLink:     getEnv("TIKTOK_LINK", ""),
+		InstagramLink:  getEnv("INSTAGRAM_LINK", ""),
 	}
 }
 

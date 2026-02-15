@@ -71,7 +71,7 @@ func main() {
 	authService := services.NewAuthService(adminRepo, cfg.JWTSecret)
 
 	// Initialize handlers
-	publicHandler := handlers.NewPublicHandler(productService, categoryService, cfg.WhatsAppNumber, cfg.StoreName, cfg.StoreAddress, cfg.ShopeeLink)
+	publicHandler := handlers.NewPublicHandler(productService, categoryService, cfg.WhatsAppNumber, cfg.StoreName, cfg.StoreAddress, cfg.ShopeeLink, cfg.TiktokLink, cfg.InstagramLink)
 	adminHandler := handlers.NewAdminHandler(productService, categoryService, cloudinaryService)
 	categoryHandler := handlers.NewCategoryHandler(categoryService, categoryRepo)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -331,10 +331,21 @@ func initLogging() {
 	log.Println("Logging initialized - stdout only")
 }
 
-// formatNumber formats a number with thousand separators
+// formatNumber formats a number with dot as thousands separator (Indonesian Rupiah style: 9.000, 1.500.000)
 func formatNumber(n int64) string {
-	if n < 1000 {
-		return fmt.Sprintf("%d", n)
+	if n < 0 {
+		return "-" + formatNumber(-n)
 	}
-	return fmt.Sprintf("%d", n) // Simple version, can be enhanced with proper formatting
+	s := fmt.Sprintf("%d", n)
+	if len(s) <= 3 {
+		return s
+	}
+	var b strings.Builder
+	for i, r := range s {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			b.WriteByte('.')
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }

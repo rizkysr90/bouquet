@@ -14,7 +14,7 @@
                     <p class="text-sm font-medium text-gray-600">Total Products</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2">{{ .Stats.TotalProducts }}</p>
                 </div>
-                <div class="bg-pink-100 rounded-full p-3">
+                <div class="bg-primary-100 rounded-full p-3">
                     <span class="text-2xl">📦</span>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                 <div>
                     <p class="text-sm font-medium text-gray-600">Quick Actions</p>
                     <div class="mt-3 space-y-2">
-                        <a href="/admin/products/new" class="block w-full bg-pink-600 hover:bg-pink-700 text-white text-center font-medium py-2 px-4 rounded-lg transition">
+                        <a href="/admin/products/new" class="block w-full bg-primary-600 hover:bg-primary-700 text-white text-center font-medium py-2 px-4 rounded-lg transition">
                             + Add Product
                         </a>
                     </div>
@@ -53,7 +53,7 @@
         <div class="p-6 border-b border-gray-200">
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-900">Recent Products</h2>
-                <a href="/admin/products" class="text-sm text-pink-600 hover:text-pink-700 font-medium">
+                <a href="/admin/products" class="text-sm text-primary-600 hover:text-primary-700 font-medium">
                     View All →
                 </a>
             </div>
@@ -81,9 +81,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ .Code }}</td>
                             <td class="px-6 py-4 text-sm text-gray-900">{{ .Title }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Rp {{ printf "%.0f" .BasePrice }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatPrice .BasePrice }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="/admin/products/{{ .ID }}/edit" class="text-pink-600 hover:text-pink-900">Edit</a>
+                                <a href="/admin/products/{{ .ID }}/edit" class="text-primary-600 hover:text-primary-900">Edit</a>
                             </td>
                         </tr>
                         {{ end }}
@@ -91,7 +91,7 @@
                 </table>
             </div>
             {{ else }}
-            <p class="text-gray-500 text-center py-8">No products yet. <a href="/admin/products/new" class="text-pink-600 hover:text-pink-700">Create your first product</a></p>
+            <p class="text-gray-500 text-center py-8">No products yet. <a href="/admin/products/new" class="text-primary-600 hover:text-primary-700">Create your first product</a></p>
             {{ end }}
         </div>
     </div>

@@ -3,10 +3,10 @@
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center space-x-2 text-gray-600">
-            <li><a href="/" class="hover:text-pink-600 transition">Beranda</a></li>
+            <li><a href="/" class="hover:text-primary-600 transition">Beranda</a></li>
             <li>/</li>
             {{ if .Product.Category }}
-            <li><a href="/?category={{ .Product.Category.ID }}" class="hover:text-pink-600 transition">{{
+            <li><a href="/?category={{ .Product.Category.ID }}" class="hover:text-primary-600 transition">{{
                     .Product.Category.Name }}</a></li>
             <li>/</li>
             {{ end }}
@@ -30,7 +30,7 @@
                     <button data-variant-color=""
                         data-variant-image="{{ if .Product.MainPhotoURL }}{{ .Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23e5e7eb' width='150' height='150'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='14' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
                         data-variant-price="{{ .Product.BasePrice }}"
-                        class="variant-thumb variant-thumb-active aspect-square border-2 border-pink-600 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        class="variant-thumb variant-thumb-active aspect-square border-2 border-primary-600 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-500">
                         <img src="{{ if .Product.MainPhotoURL }}{{ .Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23e5e7eb' width='150' height='150'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='14' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
                             alt="Default" class="w-full h-full object-cover">
                     </button>
@@ -38,7 +38,7 @@
                     <button data-variant-color="{{ .Color }}"
                         data-variant-image="{{ if .PhotoURL }}{{ .PhotoURL }}{{ else }}{{ $.Product.MainPhotoURL }}{{ end }}"
                         data-variant-price="{{ .FinalPrice $.Product.BasePrice }}"
-                        class="variant-thumb aspect-square border-2 border-gray-300 rounded-lg overflow-hidden hover:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500 transition">
+                        class="variant-thumb aspect-square border-2 border-gray-300 rounded-lg overflow-hidden hover:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
                         <img src="{{ if .PhotoURL }}{{ .PhotoURL }}{{ else }}{{ $.Product.MainPhotoURL }}{{ end }}"
                             alt="{{ .Color }}" class="w-full h-full object-cover">
                     </button>
@@ -52,7 +52,7 @@
                 <div class="mb-4">
                     {{ if .Product.Category }}
                     <span
-                        class="inline-block px-3 py-1 text-xs font-medium bg-pink-100 text-pink-800 rounded-full mb-2">
+                        class="inline-block px-3 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded-full mb-2">
                         {{ .Product.Category.Name }}
                     </span>
                     {{ end }}
@@ -63,8 +63,8 @@
 
                 <!-- Price -->
                 <div class="mb-6">
-                    <p id="product-price" class="text-3xl font-bold text-pink-600">
-                        Rp {{ printf "%.0f" .Product.BasePrice }}
+                    <p id="product-price" class="text-3xl font-bold text-primary-600">
+                        {{ formatPrice .Product.BasePrice }}
                     </p>
                 </div>
 
@@ -84,14 +84,14 @@
                         <button data-variant-color=""
                             data-variant-image="{{ if .Product.MainPhotoURL }}{{ .Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Crect fill='%23e5e7eb' width='600' height='600'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='20' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
                             data-variant-price="{{ .Product.BasePrice }}" id="variant-default"
-                            class="variant-btn variant-btn-active px-4 py-2 border-2 border-pink-600 bg-pink-50 text-pink-700 rounded-lg font-medium transition">
+                            class="variant-btn variant-btn-active px-4 py-2 border-2 border-primary-600 bg-primary-50 text-primary-700 rounded-lg font-medium transition">
                             Default
                         </button>
                         {{ range .Product.Variants }}
                         <button data-variant-color="{{ .Color }}"
                             data-variant-image="{{ if .PhotoURL }}{{ .PhotoURL }}{{ else if $.Product.MainPhotoURL }}{{ $.Product.MainPhotoURL }}{{ else }}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Crect fill='%23e5e7eb' width='600' height='600'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='20' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E{{ end }}"
                             data-variant-price="{{ .FinalPrice $.Product.BasePrice }}" id="variant-{{ .Color }}"
-                            class="variant-btn px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-pink-500 hover:text-pink-600 transition relative">
+                            class="variant-btn px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-primary-500 hover:text-primary-600 transition relative">
                             {{ .Color }}
                             {{ if .IsSale }}
                             <span class="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-semibold bg-red-500 text-white rounded">
@@ -153,13 +153,13 @@
 
             // Update variant button styles
             document.querySelectorAll('.variant-btn').forEach(btn => {
-                btn.classList.remove('border-pink-600', 'bg-pink-50', 'text-pink-700', 'variant-btn-active');
+                btn.classList.remove('border-primary-600', 'bg-primary-50', 'text-primary-700', 'variant-btn-active');
                 btn.classList.add('border-gray-300', 'text-gray-700');
             });
 
             // Update variant thumb styles
             document.querySelectorAll('.variant-thumb').forEach(btn => {
-                btn.classList.remove('border-pink-600', 'variant-thumb-active');
+                btn.classList.remove('border-primary-600', 'variant-thumb-active');
                 btn.classList.add('border-gray-300');
             });
 
@@ -167,14 +167,14 @@
             const activeBtn = color ? document.getElementById('variant-' + color) : document.getElementById('variant-default');
             if (activeBtn) {
                 activeBtn.classList.remove('border-gray-300', 'text-gray-700');
-                activeBtn.classList.add('border-pink-600', 'bg-pink-50', 'text-pink-700', 'variant-btn-active');
+                activeBtn.classList.add('border-primary-600', 'bg-primary-50', 'text-primary-700', 'variant-btn-active');
             }
 
             // Activate selected variant thumb
             const activeThumb = document.querySelector('[data-variant-color="' + (color || '') + '"].variant-thumb');
             if (activeThumb) {
                 activeThumb.classList.remove('border-gray-300');
-                activeThumb.classList.add('border-pink-600', 'variant-thumb-active');
+                activeThumb.classList.add('border-primary-600', 'variant-thumb-active');
             }
 
             // Update WhatsApp link

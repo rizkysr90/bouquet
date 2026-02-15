@@ -34,14 +34,14 @@
         <!-- Product Info -->
         <div class="p-4">
             {{ if .Category }}
-            <span class="text-xs text-pink-600 font-medium">{{ .Category.Name }}</span>
+            <span class="text-xs text-primary-600 font-medium">{{ .Category.Name }}</span>
             {{ end }}
-            <h3 class="font-semibold text-gray-900 mt-1 mb-2 line-clamp-2 group-hover:text-pink-600 transition">
+            <h3 class="font-semibold text-gray-900 mt-1 mb-2 line-clamp-2 group-hover:text-primary-600 transition">
                 {{ .Title }}
             </h3>
             <p class="text-sm text-gray-500 mb-2">Kode: {{ .Code }}</p>
-            <p class="text-lg font-bold text-pink-600">
-                Rp {{ printf "%.0f" .BasePrice }}
+            <p class="text-lg font-bold text-primary-600">
+                {{ formatPrice .BasePrice }}
             </p>
         </div>
     </a>
@@ -60,7 +60,7 @@
     <p class="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
         Coba ubah filter atau kata kunci pencarian Anda untuk menemukan produk yang Anda cari.
     </p>
-    <a href="/" class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-pink-600 bg-pink-50 rounded-lg hover:bg-pink-100 transition">
+    <a href="/" class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
         </svg>

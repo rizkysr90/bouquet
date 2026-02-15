@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ if .Title }}{{ .Title }} - {{ end }}Katalog Bahan Baku Buket Bunga</title>
+    <title>{{ if .Title }}{{ .Title }} - {{ end }}Ancaka Florist Supplier Buket Bunga</title>
     <meta name="description" content="Katalog lengkap bahan baku buket bunga - kertas, pita, aksesoris dekorasi">
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
 
     <!-- Tailwind CSS (built for production) -->
     <link href="/static/css/styles.css" rel="stylesheet">
@@ -15,24 +16,37 @@
     <script src="/static/js/htmx.min.js"></script>
 </head>
 
-<body class="bg-gray-50 min-h-screen flex flex-col">
+<body class="bg-gray-50 min-h-screen flex flex-col overflow-x-hidden">
+    <!-- Store address bar (primary color) -->
+    {{ if .StoreAddress }}
+    <div class="text-white bg-primary">
+        <div class="container mx-auto px-4 py-2 flex items-center justify-start gap-2 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{{ .StoreAddress }}</span>
+        </div>
+    </div>
+    {{ end }}
     <!-- Header -->
     <header class="bg-white shadow-sm">
         <nav class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
-                <a href="/" class="text-2xl font-bold text-pink-600">
-                    🌸 Katalog Bahan Baku
+                <a href="/" class="flex items-center gap-2 text-primary-600 hover:opacity-90 transition">
+                    <img src="/static/images/logo.jpeg" alt="Ancaka Florist Supplier Buket Bunga" class="h-10 w-auto rounded object-contain">
+                    <span class="text-xl font-bold hidden sm:inline">Ancaka Florist Supplier</span>
                 </a>
                 <div class="hidden md:flex items-center space-x-4">
-                    <a href="/" class="text-gray-700 hover:text-pink-600 transition">Beranda</a>
-                    <a href="/#products" class="text-gray-700 hover:text-pink-600 transition">Produk</a>
+                    <a href="/" class="text-gray-700 hover:text-primary-600 transition">Beranda</a>
+                    <a href="/#products" class="text-gray-700 hover:text-primary-600 transition">Produk</a>
                 </div>
             </div>
         </nav>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 container mx-auto px-4 py-8">
+    <!-- Main Content (no top padding on landing so hero is flush with navbar) -->
+    <main class="flex-1 container mx-auto px-4 {{ if eq .ContentBlock "landing-content" }}pt-0 pb-0{{ else }}py-8{{ end }}">
         {{ if eq .ContentBlock "landing-content" }}
             {{ template "landing-content" . }}
         {{ else if eq .ContentBlock "product-detail-content" }}
@@ -45,6 +59,9 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-white mt-auto">
         <div class="container mx-auto px-4 py-8">
+            <div class="flex justify-start mb-8">
+                <img src="/static/images/logo.jpeg" alt="Ancaka Florist Supplier" class="h-24 md:h-28 w-auto rounded object-contain opacity-90">
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Tentang Kami</h3>
@@ -66,7 +83,7 @@
                 </div>
             </div>
             <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
-                <p>&copy; 2026 Katalog Bahan Baku Buket Bunga. All rights reserved.</p>
+                <p>&copy; 2026 Ancaka Florist Supplier Buket Bunga. All rights reserved.</p>
             </div>
         </div>
     </footer>

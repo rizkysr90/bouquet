@@ -29,8 +29,8 @@ assets: ## Build all static assets (Tailwind CSS + copy htmx). Run before deploy
 run: ## Run the application (using vendor)
 	$(GO) run -mod=vendor ./cmd/server
 
-dev: ## Run with hot reload (requires air)
-	air -c .air.toml
+dev: ## Run app + Tailwind watch in one terminal (requires: air, npm install)
+	npm run dev
 
 test: ## Run tests (using vendor)
 	$(GO) test -mod=vendor -v ./...

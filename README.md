@@ -77,7 +77,7 @@ A fullstack Go web application for managing and displaying a flower supply produ
    npm install
    make assets
    ```
-   For live CSS updates during dev, run `make css-watch` in another terminal.
+   For local dev, `make dev` runs the app with hot reload and Tailwind CSS watch in one terminal.
 
 6. **Start development environment**
    ```bash
@@ -97,10 +97,11 @@ A fullstack Go web application for managing and displaying a flower supply produ
 make run
 ```
 
-**Run with hot reload:**
+**Run with hot reload (Go + Tailwind watch in one terminal):**
 ```bash
 make dev
 ```
+Requires [air](https://github.com/air-verse/air) installed (`go install github.com/air-verse/air@latest`). Edit Go code → app restarts; edit HTML/templates → reload on refresh; edit CSS/Tailwind → CSS rebuilds automatically.
 
 **Run tests:**
 ```bash
@@ -121,7 +122,7 @@ Tailwind CSS and htmx are built/copied locally (no CDNs). Before building or dep
    npm install
    make assets
    ```
-   This generates `web/static/css/styles.css` and copies `web/static/js/htmx.min.js`. For live CSS updates during development, run `make css-watch` in a separate terminal.
+   This generates `web/static/css/styles.css` and copies `web/static/js/htmx.min.js`. During development, `make dev` runs Tailwind in watch mode so CSS updates automatically.
 
 2. **Build Go binary**
    ```bash

@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900">Manage Products</h1>
-        <a href="/admin/products/new" class="bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-4 rounded-lg transition">
+        <a href="/admin/products/new" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition">
             + Add New Product
         </a>
     </div>
@@ -15,7 +15,7 @@
                    name="search" 
                    value="{{ .SearchQuery }}"
                    placeholder="Search by code or title..."
-                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
             <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition">
                 Search
             </button>
@@ -63,7 +63,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">Rp {{ printf "%.0f" .BasePrice }}</div>
+                            <div class="text-sm font-medium text-gray-900">{{ formatPrice .BasePrice }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex gap-2">
@@ -104,7 +104,7 @@
                     <tr>
                         <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                             <p class="mb-2">No products found.</p>
-                            <a href="/admin/products/new" class="text-pink-600 hover:text-pink-700 font-medium">Create your first product</a>
+                            <a href="/admin/products/new" class="text-primary-600 hover:text-primary-700 font-medium">Create your first product</a>
                         </td>
                     </tr>
                     {{ end }}
@@ -136,7 +136,7 @@
                     {{ range $i := (seq 1 $totalPages) }}
                     {{ if or (eq $i 1) (eq $i $totalPages) (and (ge $i (sub $currentPage 2)) (le $i (add $currentPage 2))) }}
                     <a href="?page={{ $i }}{{ if $.SearchQuery }}&search={{ $.SearchQuery }}{{ end }}" 
-                       class="px-4 py-2 border rounded-lg transition {{ if eq $i $currentPage }}bg-pink-600 text-white border-pink-600{{ else }}border-gray-300 hover:bg-gray-50{{ end }}">
+                       class="px-4 py-2 border rounded-lg transition {{ if eq $i $currentPage }}bg-primary-600 text-white border-primary-600{{ else }}border-gray-300 hover:bg-gray-50{{ end }}">
                         {{ $i }}
                     </a>
                     {{ else if or (eq $i (sub $currentPage 3)) (eq $i (add $currentPage 3)) }}

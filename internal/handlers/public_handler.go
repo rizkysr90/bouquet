@@ -16,10 +16,12 @@ type PublicHandler struct {
 	storeName       string
 	storeAddress    string
 	shopeeLink      string
+	tiktokLink      string
+	instagramLink   string
 }
 
 // NewPublicHandler creates a new public handler
-func NewPublicHandler(productService *services.ProductService, categoryService *services.CategoryService, whatsAppNumber, storeName, storeAddress, shopeeLink string) *PublicHandler {
+func NewPublicHandler(productService *services.ProductService, categoryService *services.CategoryService, whatsAppNumber, storeName, storeAddress, shopeeLink, tiktokLink, instagramLink string) *PublicHandler {
 	return &PublicHandler{
 		productService:  productService,
 		categoryService: categoryService,
@@ -27,6 +29,8 @@ func NewPublicHandler(productService *services.ProductService, categoryService *
 		storeName:       storeName,
 		storeAddress:    storeAddress,
 		shopeeLink:      shopeeLink,
+		tiktokLink:      tiktokLink,
+		instagramLink:   instagramLink,
 	}
 }
 
@@ -59,6 +63,8 @@ func (h *PublicHandler) Landing(c *fiber.Ctx) error {
 		"StoreName":      h.storeName,
 		"StoreAddress":   h.storeAddress,
 		"ShopeeLink":     h.shopeeLink,
+		"TiktokLink":     h.tiktokLink,
+		"InstagramLink":  h.instagramLink,
 		"WhatsAppNumber": h.whatsAppNumber,
 		"Pagination": fiber.Map{
 			"CurrentPage": result.Page,
@@ -92,6 +98,7 @@ func (h *PublicHandler) ProductDetail(c *fiber.Ctx) error {
 		"ContentBlock":   "product-detail-content",
 		"Product":        product,
 		"WhatsAppNumber": h.whatsAppNumber,
+		"StoreAddress":   h.storeAddress,
 	}, "layouts/base")
 }
 

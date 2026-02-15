@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ if .Title }}{{ .Title }} - {{ end }}Admin Panel</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
     
     <!-- Tailwind CSS (built for production) -->
     <link href="/static/css/styles.css" rel="stylesheet">
@@ -13,7 +14,7 @@
         <div class="bg-white rounded-lg shadow-lg p-8">
             <!-- Logo/Header -->
             <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-pink-600 mb-2">Admin Panel</h1>
+                <h1 class="text-3xl font-bold text-primary-600 mb-2">Admin Panel</h1>
                 <p class="text-gray-600">Bahan Baku Buket Bunga</p>
             </div>
 
@@ -39,7 +40,7 @@
                            required
                            autofocus
                            autocomplete="username"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
                 </div>
 
                 <!-- Password -->
@@ -50,19 +51,19 @@
                            name="password" 
                            required
                            autocomplete="current-password"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-4 rounded-lg transition shadow-lg">
+                        class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition shadow-lg">
                     Login
                 </button>
             </form>
 
             <!-- Footer -->
             <div class="mt-6 text-center text-sm text-gray-500">
-                <p>© 2026 Katalog Bahan Baku Buket Bunga</p>
+                <p>© 2026 Ancaka Florist Supplier Buket Bunga</p>
             </div>
         </div>
     </div>
