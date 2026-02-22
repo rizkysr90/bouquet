@@ -3,9 +3,11 @@ module.exports = {
   content: [
     "./web/templates/**/*.html",
   ],
-  // Ensure primary utilities are always generated (avoids cache/Docker serving old CSS)
+  // Ensure primary utilities and hero overlay backgrounds are always generated
   safelist: [
     { pattern: /^(bg|text|border|ring|from|to|via)-primary(-[0-9]+)?$/, variants: ["hover", "focus", "group-hover"] },
+    "bg-black/30",
+    "bg-black/70",
   ],
   theme: {
     extend: {
