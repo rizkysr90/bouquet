@@ -1,0 +1,48 @@
+{{/* Fragment for htmx: product grid + pagination only (no layout) */}}
+<div id="product-grid">
+    {{ template "partials/product-grid" . }}
+</div>
+{{ if and .Pagination (gt .Pagination.TotalPages 1) }}
+<div class="mt-8 flex justify-center">
+    <nav class="flex items-center space-x-2">
+        {{ $currentPage := .Pagination.CurrentPage }}
+        {{ $totalPages := .Pagination.TotalPages }}
+        {{ $prevPage := sub $currentPage 1 }}
+        {{ $nextPage := add $currentPage 1 }}
+
+        {{ if gt $currentPage 1 }}
+        <a href="?page={{ $prevPage }}" hx-get="?page={{ $prevPage }}" hx-target="#catalog-content" hx-swap="innerHTML"
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+            Sebelumnya
+        </a>
+        {{ end }}
+
+        {{ range $i := (seq 1 $totalPages) }}
+        {{ $showPage := false }}
+        {{ $showEllipsis := false }}
+        {{ if or (eq $i 1) (eq $i $totalPages) }}
+        {{ $showPage = true }}
+        {{ else if and (ge $i (sub $currentPage 2)) (le $i (add $currentPage 2)) }}
+        {{ $showPage = true }}
+        {{ else if or (eq $i (sub $currentPage 3)) (eq $i (add $currentPage 3)) }}
+        {{ $showEllipsis = true }}
+        {{ end }}
+        {{ if $showPage }}
+        <a href="?page={{ $i }}" hx-get="?page={{ $i }}" hx-target="#catalog-content" hx-swap="innerHTML"
+            class="px-4 py-2 border rounded-lg transition {{ if eq $i $currentPage }}bg-primary-600 text-white border-primary-600{{ else }}border-gray-300 hover:bg-gray-50{{ end }}">
+            {{ $i }}
+        </a>
+        {{ else if $showEllipsis }}
+        <span class="px-2 text-gray-400">...</span>
+        {{ end }}
+        {{ end }}
+
+        {{ if lt $currentPage $totalPages }}
+        <a href="?page={{ $nextPage }}" hx-get="?page={{ $nextPage }}" hx-target="#catalog-content" hx-swap="innerHTML"
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+            Selanjutnya
+        </a>
+        {{ end }}
+    </nav>
+</div>
+{{ end }}

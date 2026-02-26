@@ -53,8 +53,7 @@ func (h *PublicHandler) Landing(c *fiber.Ctx) error {
 		return c.Status(500).SendString("Failed to load products")
 	}
 
-	// Render template
-	return c.Render("pages/landing", fiber.Map{
+	data := fiber.Map{
 		"Title":          "Katalog Produk",
 		"ContentBlock":   "landing-content",
 		"Products":       result.Products,
@@ -72,7 +71,16 @@ func (h *PublicHandler) Landing(c *fiber.Ctx) error {
 			"Total":       result.Total,
 			"PageSize":    result.PageSize,
 		},
-	}, "layouts/base")
+	}
+
+	// When pagination/filter is requested via htmx, return only the catalog fragment
+	// to avoid swapping the full page (navbar, hero, etc.) into #catalog-content
+	if c.Get("HX-Request") == "true" {
+		return c.Render("partials/landing-catalog", data)
+	}
+
+	// Full page render
+	return c.Render("pages/landing", data, "layouts/base")
 }
 
 // ProductDetail renders product detail page

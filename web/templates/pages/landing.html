@@ -146,7 +146,8 @@
                 </div>
             </div>
 
-            <!-- Product Grid -->
+            <!-- Catalog content: grid + pagination (htmx swaps this whole block on page change) -->
+            <div id="catalog-content">
             <div id="product-grid">
                 {{ template "partials/product-grid" . }}
             </div>
@@ -161,7 +162,7 @@
                     {{ $nextPage := add $currentPage 1 }}
 
                     {{ if gt $currentPage 1 }}
-                    <a href="?page={{ $prevPage }}" hx-get="?page={{ $prevPage }}" hx-target="#product-grid"
+                    <a href="?page={{ $prevPage }}" hx-get="?page={{ $prevPage }}" hx-target="#catalog-content" hx-swap="innerHTML"
                         class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                         Sebelumnya
                     </a>
@@ -178,7 +179,7 @@
                     {{ $showEllipsis = true }}
                     {{ end }}
                     {{ if $showPage }}
-                    <a href="?page={{ $i }}" hx-get="?page={{ $i }}" hx-target="#product-grid"
+                    <a href="?page={{ $i }}" hx-get="?page={{ $i }}" hx-target="#catalog-content" hx-swap="innerHTML"
                         class="px-4 py-2 border rounded-lg transition {{ if eq $i $currentPage }}bg-primary-600 text-white border-primary-600{{ else }}border-gray-300 hover:bg-gray-50{{ end }}">
                         {{ $i }}
                     </a>
@@ -188,7 +189,7 @@
                     {{ end }}
 
                     {{ if lt $currentPage $totalPages }}
-                    <a href="?page={{ $nextPage }}" hx-get="?page={{ $nextPage }}" hx-target="#product-grid"
+                    <a href="?page={{ $nextPage }}" hx-get="?page={{ $nextPage }}" hx-target="#catalog-content" hx-swap="innerHTML"
                         class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                         Selanjutnya
                     </a>
@@ -196,6 +197,7 @@
                 </nav>
             </div>
             {{ end }}
+            </div>
         </div>
     </div>
     </div>
