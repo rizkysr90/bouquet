@@ -202,45 +202,9 @@ func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 		}
 	}
 
-	// Parse variants from form (same logic as UpdateProduct)
+	// Parse variants from form: only variants[N][field] — parallel variants[][photo] is unsafe
+	// because empty file inputs are omitted and indices no longer match row order.
 	var variants []models.ProductVariant
-
-	// Handle non-indexed format: variants[][color]
-	if colors := form.Value["variants[][color]"]; len(colors) > 0 {
-		priceAdjustments := form.Value["variants[][price_adjustment]"]
-		isSales := form.Value["variants[][is_sale]"]
-		nonIndexedPhotos := form.File["variants[][photo]"]
-		for i, color := range colors {
-			color = strings.TrimSpace(color)
-			if color == "" {
-				continue
-			}
-			variant := models.ProductVariant{Color: color}
-			if i < len(priceAdjustments) && priceAdjustments[i] != "" {
-				if priceAdj, err := strconv.ParseFloat(strings.TrimSpace(priceAdjustments[i]), 64); err == nil {
-					variant.PriceAdjustment = priceAdj
-				}
-			}
-			// Parse is_sale flag
-			if i < len(isSales) && (isSales[i] == "on" || isSales[i] == "true") {
-				variant.IsSale = true
-			}
-			// Handle photo
-			if i < len(nonIndexedPhotos) && nonIndexedPhotos[i].Size > 0 {
-				photo, err := nonIndexedPhotos[i].Open()
-				if err == nil {
-					photoFilename := fmt.Sprintf("%s-%s-%d", product.Code, color, time.Now().Unix())
-					photoURL, photoID, err := h.cloudinaryService.UploadProductImage(ctx, photo, photoFilename)
-					photo.Close()
-					if err == nil {
-						variant.PhotoURL = photoURL
-						variant.PhotoID = photoID
-					}
-				}
-			}
-			variants = append(variants, variant)
-		}
-	}
 
 	// Handle indexed format: variants[N][color]
 	indexedVariantsMap := make(map[int]map[string]string)
@@ -322,7 +286,7 @@ func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 			photo, err := photoFile.Open()
 			if err == nil {
 				photoFilename := fmt.Sprintf("%s-%s-%d", product.Code, color, time.Now().Unix())
-				photoURL, photoID, err := h.cloudinaryService.UploadProductImage(ctx, photo, photoFilename)
+				photoURL, photoID, err := h.cloudinaryService.UploadVariantImage(ctx, photo, photoFilename)
 				photo.Close()
 				if err == nil {
 					variant.PhotoURL = photoURL
@@ -453,35 +417,10 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 		photoFilename = fmt.Sprintf("%s-%d", product.Code, time.Now().Unix())
 	}
 
-	// Parse variants from form
-	// Form uses both variants[][color] (existing) and variants[N][color] (new via JS)
+	// Parse variants from form: only variants[N][field] (see CreateProduct comment).
 	var variants []models.ProductVariant
 
-	// Step 1: Collect all variant data by parsing form values
-	// Handle non-indexed format: variants[][color]
-	nonIndexedVariants := []map[string]string{}
-	if colors := form.Value["variants[][color]"]; len(colors) > 0 {
-		priceAdjustments := form.Value["variants[][price_adjustment]"]
-		isSales := form.Value["variants[][is_sale]"]
-		for i, color := range colors {
-			color = strings.TrimSpace(color)
-			if color == "" {
-				continue
-			}
-			variantData := map[string]string{"color": color}
-			if i < len(priceAdjustments) && priceAdjustments[i] != "" {
-				variantData["price_adjustment"] = strings.TrimSpace(priceAdjustments[i])
-			}
-			// Parse is_sale flag (checkbox: "on" or "true" = true, otherwise false)
-			if i < len(isSales) && (isSales[i] == "on" || isSales[i] == "true") {
-				variantData["is_sale"] = "true"
-			} else {
-				variantData["is_sale"] = "false"
-			}
-			nonIndexedVariants = append(nonIndexedVariants, variantData)
-		}
-	}
-
+	// Collect variant fields: variants[N][color], etc.
 	// Handle indexed format: variants[N][color]
 	indexedVariantsMap := make(map[int]map[string]string)
 	for key, values := range form.Value {
@@ -530,10 +469,7 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 	}
 	sort.Ints(indexedIndices)
 
-	// Step 2: Process variant photos
-	// Non-indexed photos
-	nonIndexedPhotos := form.File["variants[][photo]"]
-
+	// Variant photos: variants[N][photo] only (indexed)
 	// Indexed photos
 	indexedPhotosMap := make(map[int]*multipart.FileHeader)
 	for key, files := range form.File {
@@ -551,54 +487,7 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 		}
 	}
 
-	// Step 3: Build variants array
-	// First add non-indexed variants (existing)
-	for i, variantData := range nonIndexedVariants {
-		color := variantData["color"]
-		if color == "" {
-			continue
-		}
-
-		variant := models.ProductVariant{
-			Color: color,
-		}
-
-		if priceAdjStr, ok := variantData["price_adjustment"]; ok && priceAdjStr != "" {
-			if priceAdj, err := strconv.ParseFloat(priceAdjStr, 64); err == nil {
-				variant.PriceAdjustment = priceAdj
-			}
-		}
-
-		// Parse is_sale flag
-		if isSaleStr, ok := variantData["is_sale"]; ok {
-			variant.IsSale = isSaleStr == "true"
-		}
-
-		// Handle photo for non-indexed variant
-		if i < len(nonIndexedPhotos) && nonIndexedPhotos[i].Size > 0 {
-			// New photo uploaded - upload it
-			photo, err := nonIndexedPhotos[i].Open()
-			if err == nil {
-				photoFilename := fmt.Sprintf("%s-%s-%d", product.Code, color, time.Now().Unix())
-				photoURL, photoID, err := h.cloudinaryService.UploadProductImage(ctx, photo, photoFilename)
-				photo.Close()
-				if err == nil {
-					variant.PhotoURL = photoURL
-					variant.PhotoID = photoID
-				}
-			}
-		} else {
-			// No new photo uploaded - preserve existing photo if variant exists
-			if existingVariant, exists := existingVariantsMap[color]; exists {
-				variant.PhotoURL = existingVariant.PhotoURL
-				variant.PhotoID = existingVariant.PhotoID
-			}
-		}
-
-		variants = append(variants, variant)
-	}
-
-	// Then add indexed variants (new)
+	// Build variants from indexed rows only (edit + JS-added rows)
 	for _, index := range indexedIndices {
 		variantData := indexedVariantsMap[index]
 		color := variantData["color"]
@@ -626,13 +515,17 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 			photo, err := photoFile.Open()
 			if err == nil {
 				photoFilename := fmt.Sprintf("%s-%s-%d", product.Code, color, time.Now().Unix())
-				photoURL, photoID, err := h.cloudinaryService.UploadProductImage(ctx, photo, photoFilename)
+				photoURL, photoID, err := h.cloudinaryService.UploadVariantImage(ctx, photo, photoFilename)
 				photo.Close()
 				if err == nil {
 					variant.PhotoURL = photoURL
 					variant.PhotoID = photoID
 				}
 			}
+		} else if existingVariant, exists := existingVariantsMap[color]; exists {
+			// Edit: keep previous photo when this row did not upload a new file
+			variant.PhotoURL = existingVariant.PhotoURL
+			variant.PhotoID = existingVariant.PhotoID
 		}
 
 		variants = append(variants, variant)

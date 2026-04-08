@@ -9,9 +9,11 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
+	"github.com/google/uuid"
 )
 
 const (
@@ -53,7 +55,11 @@ func (s *CloudinaryService) UploadProductImage(ctx context.Context, file multipa
 	}
 
 	fileSize := len(fileData)
-	log.Printf("Uploading to Cloudinary - filename: %s, size: %d bytes, cloudName: %s", filename, fileSize, s.cloudName)
+	// Never use the client filename as PublicID: duplicate names (e.g. photo.jpg) or
+	// repeated patterns overwrite the same Cloudinary asset, so multiple DB rows can
+	// point at one image and updating one product appears to change another's photo.
+	publicID := "m_" + strings.ReplaceAll(uuid.New().String(), "-", "")
+	log.Printf("Uploading to Cloudinary - original filename: %s, publicID: %s, size: %d bytes, cloudName: %s", filename, publicID, fileSize, s.cloudName)
 
 	// Validate file content
 	if err := s.validateFileContent(fileData); err != nil {
@@ -71,7 +77,7 @@ func (s *CloudinaryService) UploadProductImage(ctx context.Context, file multipa
 	// Upload to Cloudinary with optimization
 	resp, err := s.cld.Upload.Upload(ctx, fileReader, uploader.UploadParams{
 		Folder:         "flower-supply/products",
-		PublicID:       filename,
+		PublicID:       publicID,
 		ResourceType:   "image",
 		Transformation: "c_limit,w_1200,h_1200,q_auto,f_auto",
 	})
@@ -138,7 +144,8 @@ func (s *CloudinaryService) UploadVariantImage(ctx context.Context, file multipa
 	}
 
 	fileSize := len(fileData)
-	log.Printf("Uploading variant to Cloudinary - filename: %s, size: %d bytes", filename, fileSize)
+	publicID := "v_" + strings.ReplaceAll(uuid.New().String(), "-", "")
+	log.Printf("Uploading variant to Cloudinary - original filename: %s, publicID: %s, size: %d bytes", filename, publicID, fileSize)
 
 	// Validate file content
 	if err := s.validateFileContent(fileData); err != nil {
@@ -156,7 +163,7 @@ func (s *CloudinaryService) UploadVariantImage(ctx context.Context, file multipa
 	// Upload to Cloudinary with optimization
 	resp, err := s.cld.Upload.Upload(ctx, fileReader, uploader.UploadParams{
 		Folder:         "flower-supply/variants",
-		PublicID:       filename,
+		PublicID:       publicID,
 		Transformation: "c_limit,w_800,h_800,q_auto,f_auto",
 		ResourceType:   "image",
 	})
