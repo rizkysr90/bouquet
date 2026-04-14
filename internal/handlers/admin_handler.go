@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"mime/multipart"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rizkysr90/aslam-flower/internal/models"
@@ -142,15 +140,24 @@ func (h *AdminHandler) NewProductForm(c *fiber.Ctx) error {
 	}, "layouts/admin")
 }
 
-// CreateProduct handles product creation
+// CloudinarySign returns signed parameters for direct browser upload to Cloudinary (JSON).
+func (h *AdminHandler) CloudinarySign(c *fiber.Ctx) error {
+	var body struct {
+		Kind string `json:"kind"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid JSON"})
+	}
+	params, err := h.cloudinaryService.GenerateClientDirectUpload(strings.TrimSpace(body.Kind))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(params)
+}
+
+// CreateProduct handles product creation (images via client direct upload + hidden fields; no multipart files).
 func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 	ctx := c.Context()
-
-	// Parse multipart form (max 10MB for file upload)
-	form, err := c.MultipartForm()
-	if err != nil {
-		return c.Status(400).SendString("Invalid form data")
-	}
 
 	// Parse product data
 	product := &models.Product{
@@ -176,30 +183,17 @@ func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 	// Parse is_sold flag
 	product.IsSold = c.FormValue("is_sold") == "on" || c.FormValue("is_sold") == "true"
 
-	// Get main photo file
-	var mainPhotoFile multipart.File
-	var photoFilename string
-	if files := form.File["main_photo"]; len(files) > 0 && files[0].Size > 0 {
-		fileHeader := files[0]
-		log.Printf("Uploading file: name=%s, size=%d, type=%s", fileHeader.Filename, fileHeader.Size, fileHeader.Header.Get("Content-Type"))
-		file, err := fileHeader.Open()
-		if err != nil {
-			log.Printf("ERROR: Failed to open photo file: %v", err)
-			return c.Status(400).SendString(fmt.Sprintf("Failed to open photo file: %v", err))
+	mainURL := strings.TrimSpace(c.FormValue("main_photo_url"))
+	mainPID := strings.TrimSpace(c.FormValue("main_photo_id"))
+	if mainURL != "" || mainPID != "" {
+		if mainURL == "" || mainPID == "" {
+			return c.Status(400).SendString("Main photo: provide both URL and public ID, or leave both empty")
 		}
-		mainPhotoFile = file
-		photoFilename = fileHeader.Filename
-
-		// Generate unique filename using timestamp (without folder, Cloudinary service adds it)
-		photoFilename = fmt.Sprintf("%s-%d", product.Code, time.Now().Unix())
-		log.Printf("Generated photo filename: %s", photoFilename)
-	} else {
-		// Log if no file was uploaded (for debugging)
-		if len(form.File["main_photo"]) == 0 {
-			log.Printf("WARNING: No file field 'main_photo' in form")
-		} else if len(form.File["main_photo"]) > 0 && form.File["main_photo"][0].Size == 0 {
-			log.Printf("WARNING: File field 'main_photo' exists but is empty (size=0)")
+		if err := h.cloudinaryService.ValidateClientUploadResult("main", mainURL, mainPID); err != nil {
+			return c.Status(400).SendString("Invalid main photo: " + err.Error())
 		}
+		product.MainPhotoURL = mainURL
+		product.MainPhotoID = mainPID
 	}
 
 	// Parse variants from form: only variants[N][field] — parallel variants[][photo] is unsafe
@@ -208,16 +202,18 @@ func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 
 	// Handle indexed format: variants[N][color]
 	indexedVariantsMap := make(map[int]map[string]string)
-	for key, values := range form.Value {
-		if strings.HasPrefix(key, "variants[") && strings.Contains(key, "][") && !strings.Contains(key, "variants[][") {
-			start := strings.Index(key, "[") + 1
-			middle := strings.Index(key, "][")
+	c.Request().PostArgs().VisitAll(func(key, value []byte) {
+		keyStr := string(key)
+		values := []string{string(value)}
+		if strings.HasPrefix(keyStr, "variants[") && strings.Contains(keyStr, "][") && !strings.Contains(keyStr, "variants[][") {
+			start := strings.Index(keyStr, "[") + 1
+			middle := strings.Index(keyStr, "][")
 			if start > 0 && middle > start {
-				indexStr := key[start:middle]
+				indexStr := keyStr[start:middle]
 				if index, err := strconv.Atoi(indexStr); err == nil {
-					fieldEnd := strings.Index(key[middle+2:], "]")
+					fieldEnd := strings.Index(keyStr[middle+2:], "]")
 					if fieldEnd > 0 {
-						field := key[middle+2 : middle+2+fieldEnd]
+						field := keyStr[middle+2 : middle+2+fieldEnd]
 						if len(values) > 0 {
 							if indexedVariantsMap[index] == nil {
 								indexedVariantsMap[index] = make(map[string]string)
@@ -235,30 +231,17 @@ func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 								} else {
 									indexedVariantsMap[index][field] = "false"
 								}
+							} else if field == "photo_url" && len(values) > 0 {
+								indexedVariantsMap[index][field] = strings.TrimSpace(values[0])
+							} else if field == "photo_id" && len(values) > 0 {
+								indexedVariantsMap[index][field] = strings.TrimSpace(values[0])
 							}
 						}
 					}
 				}
 			}
 		}
-	}
-
-	// Process indexed photos
-	indexedPhotosMap := make(map[int]*multipart.FileHeader)
-	for key, files := range form.File {
-		if strings.HasPrefix(key, "variants[") && strings.Contains(key, "][photo]") && !strings.Contains(key, "variants[][") {
-			start := strings.Index(key, "[") + 1
-			middle := strings.Index(key, "][photo]")
-			if start > 0 && middle > start {
-				indexStr := key[start:middle]
-				if index, err := strconv.Atoi(indexStr); err == nil {
-					if len(files) > 0 && files[0].Size > 0 {
-						indexedPhotosMap[index] = files[0]
-					}
-				}
-			}
-		}
-	}
+	})
 
 	// Add indexed variants
 	indexedIndices := make([]int, 0, len(indexedVariantsMap))
@@ -282,29 +265,24 @@ func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 		if isSaleStr, ok := variantData["is_sale"]; ok {
 			variant.IsSale = isSaleStr == "true"
 		}
-		if photoFile, ok := indexedPhotosMap[index]; ok {
-			photo, err := photoFile.Open()
-			if err == nil {
-				photoFilename := fmt.Sprintf("%s-%s-%d", product.Code, color, time.Now().Unix())
-				photoURL, photoID, err := h.cloudinaryService.UploadVariantImage(ctx, photo, photoFilename)
-				photo.Close()
-				if err == nil {
-					variant.PhotoURL = photoURL
-					variant.PhotoID = photoID
-				}
+		pu := variantData["photo_url"]
+		pid := variantData["photo_id"]
+		if pu != "" || pid != "" {
+			if pu == "" || pid == "" {
+				return c.Status(400).SendString(fmt.Sprintf("Variant %q: provide both photo URL and public ID, or leave both empty", color))
 			}
+			if err := h.cloudinaryService.ValidateClientUploadResult("variant", pu, pid); err != nil {
+				return c.Status(400).SendString("Invalid variant image for " + color + ": " + err.Error())
+			}
+			variant.PhotoURL = pu
+			variant.PhotoID = pid
 		}
 		variants = append(variants, variant)
 	}
 
 	product.Variants = variants
 
-	// Create product (service will handle file closing)
-	err = h.productService.Create(ctx, product, mainPhotoFile, photoFilename)
-	if mainPhotoFile != nil {
-		mainPhotoFile.Close() // Close after service is done
-	}
-	if err != nil {
+	if err := h.productService.Create(ctx, product, nil, ""); err != nil {
 		log.Printf("ERROR: Failed to create product: %v", err)
 		return c.Status(400).SendString(fmt.Sprintf("Failed to create product: %v", err))
 	}
@@ -369,12 +347,6 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 		existingVariantsMap[v.Color] = v
 	}
 
-	// Parse multipart form
-	form, err := c.MultipartForm()
-	if err != nil {
-		return c.Status(400).SendString("Invalid form data")
-	}
-
 	// Parse product data
 	product := &models.Product{
 		ID:          productID,
@@ -401,41 +373,36 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 		}
 	}
 
-	// Check if new photo is uploaded
-	var newPhotoFile multipart.File
-	var photoFilename string
-	if files := form.File["main_photo"]; len(files) > 0 && files[0].Size > 0 {
-		fileHeader := files[0]
-		file, err := fileHeader.Open()
-		if err != nil {
-			return c.Status(400).SendString("Failed to process photo")
+	mainURL := strings.TrimSpace(c.FormValue("main_photo_url"))
+	mainPID := strings.TrimSpace(c.FormValue("main_photo_id"))
+	if mainURL != "" || mainPID != "" {
+		if mainURL == "" || mainPID == "" {
+			return c.Status(400).SendString("Main photo: provide both URL and public ID, or leave both empty")
 		}
-		newPhotoFile = file
-		photoFilename = fileHeader.Filename
-
-		// Generate unique filename using timestamp
-		photoFilename = fmt.Sprintf("%s-%d", product.Code, time.Now().Unix())
+		if err := h.cloudinaryService.ValidateClientUploadResult("main", mainURL, mainPID); err != nil {
+			return c.Status(400).SendString("Invalid main photo: " + err.Error())
+		}
+		product.MainPhotoURL = mainURL
+		product.MainPhotoID = mainPID
 	}
 
 	// Parse variants from form: only variants[N][field] (see CreateProduct comment).
 	var variants []models.ProductVariant
 
 	// Collect variant fields: variants[N][color], etc.
-	// Handle indexed format: variants[N][color]
 	indexedVariantsMap := make(map[int]map[string]string)
-	for key, values := range form.Value {
-		// Check for indexed format: variants[N][color] or variants[N][price_adjustment]
-		if strings.HasPrefix(key, "variants[") && strings.Contains(key, "][") && !strings.Contains(key, "variants[][") {
-			// Extract index: variants[N][field]
-			start := strings.Index(key, "[") + 1
-			middle := strings.Index(key, "][")
+	c.Request().PostArgs().VisitAll(func(key, value []byte) {
+		keyStr := string(key)
+		values := []string{string(value)}
+		if strings.HasPrefix(keyStr, "variants[") && strings.Contains(keyStr, "][") && !strings.Contains(keyStr, "variants[][") {
+			start := strings.Index(keyStr, "[") + 1
+			middle := strings.Index(keyStr, "][")
 			if start > 0 && middle > start {
-				indexStr := key[start:middle]
+				indexStr := keyStr[start:middle]
 				if index, err := strconv.Atoi(indexStr); err == nil {
-					// Extract field name
-					fieldEnd := strings.Index(key[middle+2:], "]")
+					fieldEnd := strings.Index(keyStr[middle+2:], "]")
 					if fieldEnd > 0 {
-						field := key[middle+2 : middle+2+fieldEnd]
+						field := keyStr[middle+2 : middle+2+fieldEnd]
 						if len(values) > 0 {
 							if indexedVariantsMap[index] == nil {
 								indexedVariantsMap[index] = make(map[string]string)
@@ -448,19 +415,22 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 							} else if field == "price_adjustment" && values[0] != "" {
 								indexedVariantsMap[index][field] = strings.TrimSpace(values[0])
 							} else if field == "is_sale" {
-								// Parse is_sale flag (checkbox: "on" or "true" = true, otherwise false)
 								if values[0] == "on" || values[0] == "true" {
 									indexedVariantsMap[index][field] = "true"
 								} else {
 									indexedVariantsMap[index][field] = "false"
 								}
+							} else if field == "photo_url" && len(values) > 0 {
+								indexedVariantsMap[index][field] = strings.TrimSpace(values[0])
+							} else if field == "photo_id" && len(values) > 0 {
+								indexedVariantsMap[index][field] = strings.TrimSpace(values[0])
 							}
 						}
 					}
 				}
 			}
 		}
-	}
+	})
 
 	// Convert indexed map to sorted slice
 	indexedIndices := make([]int, 0, len(indexedVariantsMap))
@@ -468,24 +438,6 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 		indexedIndices = append(indexedIndices, idx)
 	}
 	sort.Ints(indexedIndices)
-
-	// Variant photos: variants[N][photo] only (indexed)
-	// Indexed photos
-	indexedPhotosMap := make(map[int]*multipart.FileHeader)
-	for key, files := range form.File {
-		if strings.HasPrefix(key, "variants[") && strings.Contains(key, "][photo]") && !strings.Contains(key, "variants[][") {
-			start := strings.Index(key, "[") + 1
-			middle := strings.Index(key, "][photo]")
-			if start > 0 && middle > start {
-				indexStr := key[start:middle]
-				if index, err := strconv.Atoi(indexStr); err == nil {
-					if len(files) > 0 && files[0].Size > 0 {
-						indexedPhotosMap[index] = files[0]
-					}
-				}
-			}
-		}
-	}
 
 	// Build variants from indexed rows only (edit + JS-added rows)
 	for _, index := range indexedIndices {
@@ -510,20 +462,18 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 			variant.IsSale = isSaleStr == "true"
 		}
 
-		// Handle photo for indexed variant
-		if photoFile, ok := indexedPhotosMap[index]; ok {
-			photo, err := photoFile.Open()
-			if err == nil {
-				photoFilename := fmt.Sprintf("%s-%s-%d", product.Code, color, time.Now().Unix())
-				photoURL, photoID, err := h.cloudinaryService.UploadVariantImage(ctx, photo, photoFilename)
-				photo.Close()
-				if err == nil {
-					variant.PhotoURL = photoURL
-					variant.PhotoID = photoID
-				}
+		pu := variantData["photo_url"]
+		pid := variantData["photo_id"]
+		if pu != "" || pid != "" {
+			if pu == "" || pid == "" {
+				return c.Status(400).SendString(fmt.Sprintf("Variant %q: provide both photo URL and public ID, or leave both empty", color))
 			}
+			if err := h.cloudinaryService.ValidateClientUploadResult("variant", pu, pid); err != nil {
+				return c.Status(400).SendString("Invalid variant image for " + color + ": " + err.Error())
+			}
+			variant.PhotoURL = pu
+			variant.PhotoID = pid
 		} else if existingVariant, exists := existingVariantsMap[color]; exists {
-			// Edit: keep previous photo when this row did not upload a new file
 			variant.PhotoURL = existingVariant.PhotoURL
 			variant.PhotoID = existingVariant.PhotoID
 		}
@@ -533,11 +483,7 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 
 	product.Variants = variants
 
-	// Update product (service will handle file closing)
-	err = h.productService.Update(ctx, productID, product, newPhotoFile, photoFilename)
-	if newPhotoFile != nil {
-		newPhotoFile.Close() // Close after service is done
-	}
+	err = h.productService.Update(ctx, productID, product, nil, "")
 	if err != nil {
 		return c.Status(400).SendString(fmt.Sprintf("Failed to update product: %v", err))
 	}

@@ -102,17 +102,20 @@ func main() {
 		CookieSameSite: "Strict",
 		Expiration:     1 * time.Hour,
 		ContextKey:     "csrf_token", // Store token in context for easy access
-		// Custom extractor that checks both form and header
+		// Custom extractor: form, query (JSON/fetch), then common CSRF header spellings.
+		// fasthttp header lookup can miss some casings; query ?_csrf= avoids that for API calls.
 		Extractor: func(c *fiber.Ctx) (string, error) {
-			// First try form field (for regular POST forms)
 			if token := c.FormValue("_csrf"); token != "" {
 				return token, nil
 			}
-			// Then try header (for htmx DELETE requests)
-			if token := c.Get("X-CSRF-Token"); token != "" {
+			if token := c.Query("_csrf"); token != "" {
 				return token, nil
 			}
-			// If neither found, return error
+			for _, name := range []string{"X-CSRF-Token", "X-Csrf-Token", "X-CSRF-TOKEN"} {
+				if token := c.Get(name); token != "" {
+					return token, nil
+				}
+			}
 			return "", fiber.ErrForbidden
 		},
 	})
@@ -154,6 +157,7 @@ func main() {
 	adminGroup.Get("/products/:id/edit", adminHandler.EditProductForm)
 	adminGroup.Post("/products/:id", adminHandler.UpdateProduct)
 	adminGroup.Post("/products/:id/delete", adminHandler.DeleteProduct)
+	adminGroup.Post("/api/cloudinary/sign", adminHandler.CloudinarySign)
 
 	// Admin category routes
 	adminGroup.Get("/categories", categoryHandler.ListCategories)

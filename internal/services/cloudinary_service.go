@@ -9,9 +9,11 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/google/uuid"
 )
@@ -19,7 +21,26 @@ import (
 const (
 	// MaxFileSize is the maximum file size in bytes (5MB)
 	MaxFileSize = 5 * 1024 * 1024
+
+	folderProducts = "flower-supply/products"
+	folderVariants = "flower-supply/variants"
+
+	// Direct-upload transformation strings (must match server UploadProductImage / UploadVariantImage)
+	transformationProduct = "c_limit,w_1200,h_1200,q_auto,f_auto"
+	transformationVariant = "c_limit,w_800,h_800,q_auto,f_auto"
 )
+
+// ClientDirectUploadParams is returned to the browser for signed direct upload to Cloudinary.
+type ClientDirectUploadParams struct {
+	UploadURL      string `json:"uploadURL"`
+	CloudName      string `json:"cloudName"`
+	APIKey         string `json:"apiKey"`
+	Timestamp      string `json:"timestamp"`
+	Signature      string `json:"signature"`
+	Folder         string `json:"folder"`
+	PublicID       string `json:"publicId"`
+	Transformation string `json:"transformation"`
+}
 
 // CloudinaryService handles Cloudinary image operations
 type CloudinaryService struct {
@@ -76,10 +97,10 @@ func (s *CloudinaryService) UploadProductImage(ctx context.Context, file multipa
 
 	// Upload to Cloudinary with optimization
 	resp, err := s.cld.Upload.Upload(ctx, fileReader, uploader.UploadParams{
-		Folder:         "flower-supply/products",
+		Folder:         folderProducts,
 		PublicID:       publicID,
 		ResourceType:   "image",
-		Transformation: "c_limit,w_1200,h_1200,q_auto,f_auto",
+		Transformation: transformationProduct,
 	})
 
 	// Check for error in response even if err is nil
@@ -162,9 +183,9 @@ func (s *CloudinaryService) UploadVariantImage(ctx context.Context, file multipa
 
 	// Upload to Cloudinary with optimization
 	resp, err := s.cld.Upload.Upload(ctx, fileReader, uploader.UploadParams{
-		Folder:         "flower-supply/variants",
+		Folder:         folderVariants,
 		PublicID:       publicID,
-		Transformation: "c_limit,w_800,h_800,q_auto,f_auto",
+		Transformation: transformationVariant,
 		ResourceType:   "image",
 	})
 
@@ -229,6 +250,75 @@ func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) er
 		return fmt.Errorf("failed to delete image: %w", err)
 	}
 
+	return nil
+}
+
+// GenerateClientDirectUpload builds signed parameters for browser → Cloudinary direct upload.
+// kind must be "main" (product image) or "variant".
+func (s *CloudinaryService) GenerateClientDirectUpload(kind string) (*ClientDirectUploadParams, error) {
+	cloud := s.cld.Config.Cloud
+	if cloud.APISecret == "" || cloud.APIKey == "" {
+		return nil, errors.New("cloudinary API credentials not configured")
+	}
+
+	var folder, publicID, transform string
+	switch kind {
+	case "main":
+		folder = folderProducts
+		publicID = "m_" + strings.ReplaceAll(uuid.New().String(), "-", "")
+		transform = transformationProduct
+	case "variant":
+		folder = folderVariants
+		publicID = "v_" + strings.ReplaceAll(uuid.New().String(), "-", "")
+		transform = transformationVariant
+	default:
+		return nil, fmt.Errorf("invalid upload kind: %q (use main or variant)", kind)
+	}
+
+	params := url.Values{}
+	params.Set("folder", folder)
+	params.Set("public_id", publicID)
+	params.Set("transformation", transform)
+
+	signatureHex, err := api.SignParameters(params, cloud.APISecret)
+	if err != nil {
+		return nil, err
+	}
+
+	uploadURL := fmt.Sprintf("https://api.cloudinary.com/v1_1/%s/image/upload", s.cloudName)
+	return &ClientDirectUploadParams{
+		UploadURL:      uploadURL,
+		CloudName:      s.cloudName,
+		APIKey:         cloud.APIKey,
+		Timestamp:      params.Get("timestamp"),
+		Signature:      signatureHex,
+		Folder:         folder,
+		PublicID:       publicID,
+		Transformation: transform,
+	}, nil
+}
+
+// ValidateClientUploadResult checks that URLs and public IDs from a direct upload belong to this account and folder.
+func (s *CloudinaryService) ValidateClientUploadResult(kind, secureURL, publicID string) error {
+	if secureURL == "" || publicID == "" {
+		return errors.New("missing image URL or public ID")
+	}
+	prefix := "https://res.cloudinary.com/" + s.cloudName + "/"
+	if !strings.HasPrefix(secureURL, prefix) {
+		return errors.New("image URL does not belong to this Cloudinary account")
+	}
+	switch kind {
+	case "main":
+		if !strings.HasPrefix(publicID, folderProducts+"/") {
+			return errors.New("invalid main image public ID")
+		}
+	case "variant":
+		if !strings.HasPrefix(publicID, folderVariants+"/") {
+			return errors.New("invalid variant image public ID")
+		}
+	default:
+		return fmt.Errorf("invalid kind %q", kind)
+	}
 	return nil
 }
 

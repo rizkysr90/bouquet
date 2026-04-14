@@ -148,6 +148,14 @@ func (h *PublicHandler) FilterProducts(c *fiber.Ctx) error {
 
 	// Also parse from form values if POST request
 	if c.Method() == "POST" {
+		// Parse search query from form ("q" from landing page search input).
+		// Accept both "q" and "search" for compatibility.
+		if q := c.FormValue("q"); q != "" {
+			filters.SearchQuery = q
+		} else if q := c.FormValue("search"); q != "" {
+			filters.SearchQuery = q
+		}
+
 		// Parse category from form
 		if categoryStr := c.FormValue("category"); categoryStr != "" {
 			if categoryID, err := strconv.Atoi(categoryStr); err == nil && categoryID > 0 {
@@ -288,8 +296,11 @@ func (h *PublicHandler) parseFilters(c *fiber.Ctx) repositories.ProductFilters {
 	}
 
 	// Parse search query
+	// Accept both "search" and "q" (landing page search input uses "q").
 	if searchQuery := c.Query("search", ""); searchQuery != "" {
 		filters.SearchQuery = searchQuery
+	} else if q := c.Query("q", ""); q != "" {
+		filters.SearchQuery = q
 	}
 
 	return filters

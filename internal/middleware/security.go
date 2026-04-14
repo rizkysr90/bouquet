@@ -30,7 +30,7 @@ func SecurityHeaders() fiber.Handler {
 			"img-src 'self' https://res.cloudinary.com data:; " +
 			"style-src 'self' 'unsafe-inline'; " +
 			"font-src 'self' data:; " +
-			"connect-src 'self';"
+			"connect-src 'self' https://api.cloudinary.com;"
 		c.Set("Content-Security-Policy", csp)
 
 		// Strict Transport Security (HTTPS only in production)

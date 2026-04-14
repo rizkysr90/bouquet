@@ -184,23 +184,24 @@ func (s *ProductService) Update(ctx context.Context, id int, product *models.Pro
 	// Set ID for update
 	product.ID = id
 
-	// Handle photo update
+	// Handle photo update (server multipart upload or client direct upload via hidden fields)
 	oldPhotoID := existing.MainPhotoID
 	if newPhoto != nil {
-		// Upload new photo
 		photoURL, photoID, err := s.cloudinaryService.UploadProductImage(ctx, newPhoto, photoFilename)
 		if err != nil {
 			return fmt.Errorf("failed to upload photo: %w", err)
 		}
 		product.MainPhotoURL = photoURL
 		product.MainPhotoID = photoID
-
-		// Delete old photo from Cloudinary (best effort)
-		if oldPhotoID != "" {
+		if oldPhotoID != "" && oldPhotoID != photoID {
+			_ = s.cloudinaryService.DeleteImage(ctx, oldPhotoID)
+		}
+	} else if product.MainPhotoURL != "" && product.MainPhotoID != "" {
+		// Client direct upload: handler validated URL/public_id; replace old asset if changed
+		if oldPhotoID != "" && product.MainPhotoID != oldPhotoID {
 			_ = s.cloudinaryService.DeleteImage(ctx, oldPhotoID)
 		}
 	} else {
-		// Keep existing photo
 		product.MainPhotoURL = existing.MainPhotoURL
 		product.MainPhotoID = existing.MainPhotoID
 	}
