@@ -34,7 +34,9 @@ type ProductVariant struct {
 	UpdatedAt       time.Time `db:"updated_at" json:"updated_at"`
 }
 
-// FinalPrice returns base_price + price_adjustment
+// FinalPrice returns the variant's final price.
+// Note: in this project `price_adjustment` is used as the stored final variant price.
 func (v *ProductVariant) FinalPrice(basePrice float64) float64 {
-	return basePrice + v.PriceAdjustment
+	_ = basePrice
+	return v.PriceAdjustment
 }
