@@ -257,9 +257,11 @@ func (h *AdminHandler) CreateProduct(c *fiber.Ctx) error {
 			continue
 		}
 		variant := models.ProductVariant{Color: color}
-		if priceAdjStr, ok := variantData["price_adjustment"]; ok && priceAdjStr != "" {
-			if priceAdj, err := strconv.ParseFloat(priceAdjStr, 64); err == nil {
-				variant.PriceAdjustment = priceAdj
+		// Admin form input is treated as FINAL variant price (what should be shown publicly).
+		// Store it as price_adjustment so public can compute FinalPrice = base + adjustment.
+		if finalPriceStr, ok := variantData["price_adjustment"]; ok && finalPriceStr != "" {
+			if finalPrice, err := strconv.ParseFloat(finalPriceStr, 64); err == nil {
+				variant.PriceAdjustment = finalPrice - product.BasePrice
 			}
 		}
 		if isSaleStr, ok := variantData["is_sale"]; ok {
@@ -451,9 +453,11 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 			Color: color,
 		}
 
-		if priceAdjStr, ok := variantData["price_adjustment"]; ok && priceAdjStr != "" {
-			if priceAdj, err := strconv.ParseFloat(priceAdjStr, 64); err == nil {
-				variant.PriceAdjustment = priceAdj
+		// Admin form input is treated as FINAL variant price (what should be shown publicly).
+		// Store it as price_adjustment so public can compute FinalPrice = base + adjustment.
+		if finalPriceStr, ok := variantData["price_adjustment"]; ok && finalPriceStr != "" {
+			if finalPrice, err := strconv.ParseFloat(finalPriceStr, 64); err == nil {
+				variant.PriceAdjustment = finalPrice - product.BasePrice
 			}
 		}
 
