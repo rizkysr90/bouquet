@@ -374,6 +374,9 @@ func (h *AdminHandler) UpdateProduct(c *fiber.Ctx) error {
 		}
 	}
 
+	// Parse is_sold flag (Sold Out / Habis)
+	product.IsSold = c.FormValue("is_sold") == "on" || c.FormValue("is_sold") == "true"
+
 	mainURL := strings.TrimSpace(c.FormValue("main_photo_url"))
 	mainPID := strings.TrimSpace(c.FormValue("main_photo_id"))
 	if mainURL != "" || mainPID != "" {
